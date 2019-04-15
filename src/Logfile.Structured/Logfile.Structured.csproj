@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Authors>Kristian Virkus</Authors>
+    <Company>Kristian Virkus</Company>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Copyright>Kristian Virkus</Copyright>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/KristianVirkus/LogfileStructured/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/KristianVirkus/LogfileStructured</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/KristianVirkus/LogfileStructured</RepositoryUrl>
+    <PackageTags>logfile logger logging semantic structured details exception text id dump binary file console debug loglevel</PackageTags>
+    <PackageIconUrl>https://raw.githubusercontent.com/KristianVirkus/LogfileStructured/master/res/icon.png</PackageIconUrl>
+    <Description>This implementation for the Logfile framework allows logging to files or consoles in a structured fashion. Different information retain their types throughout the whole logging process even inside the logfile. Thus it can later be parsed easily for automated analysis or displaying purposes. The logging occurs in a textual format which is easily readable by humans.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Logfile" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>
