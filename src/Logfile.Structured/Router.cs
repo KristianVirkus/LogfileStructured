@@ -81,7 +81,6 @@ namespace Logfile.Structured
 									this.fileStream = File.Open(getFileName(), FileMode.Create, FileAccess.Write, FileShare.Read);
 								}
 
-								await this.fileStream.WriteAsync(data, 0, data.Length);
 								this.bytesWrittenToFile += data.Length;
 
 								if (this.bytesWrittenToFile >= this.configuration.MaximumLogfileSize)
