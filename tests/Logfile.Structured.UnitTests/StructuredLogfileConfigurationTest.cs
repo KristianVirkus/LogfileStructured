@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Logfile.Structured.UnitTests
 {
-	class ConfigurationTest
+	class StructuredLogfileConfigurationTest
 	{
 		static readonly IReadOnlyDictionary<Type, ILogEventDetailFormatter> DefaultLogEventDetailFormatters = new Dictionary<Type, ILogEventDetailFormatter>()
 		{
@@ -23,7 +23,7 @@ namespace Logfile.Structured.UnitTests
 
 		static readonly IEnumerable<IStreamWriter> DefaultStreamWriters;
 
-		static ConfigurationTest()
+		static StructuredLogfileConfigurationTest()
 		{
 			DefaultStreamWriters = new[] { Mock.Of<IStreamWriter>() };
 			Mock.Get(DefaultStreamWriters.Single())
@@ -34,7 +34,7 @@ namespace Logfile.Structured.UnitTests
 				.Callback(() => { });
 		}
 
-		static Configuration<StandardLoglevel> createConfiguration(
+		static StructuredLogfileConfiguration<StandardLoglevel> createConfiguration(
 			string appName = "app",
 			bool writeToConsole = true,
 			bool writeToDebugConsole = true,
@@ -49,7 +49,7 @@ namespace Logfile.Structured.UnitTests
 			IEnumerable<IStreamWriter> additionalStreamWriters = null,
 			bool makeAdditionalStreamWritersNull = false)
 		{
-			return new Configuration<StandardLoglevel>(
+			return new StructuredLogfileConfiguration<StandardLoglevel>(
 				appName,
 				writeToConsole,
 				writeToDebugConsole,
@@ -106,7 +106,7 @@ namespace Logfile.Structured.UnitTests
 			var configuration = createConfiguration(appName: null);
 
 			// Assert
-			configuration.AppName.Should().BeOneOf("testhost", Configuration<StandardLoglevel>.DefaultAppName);
+			configuration.AppName.Should().BeOneOf("testhost", StructuredLogfileConfiguration<StandardLoglevel>.DefaultAppName);
 		}
 
 		[Test]
@@ -117,7 +117,7 @@ namespace Logfile.Structured.UnitTests
 			var configuration = createConfiguration(path: null);
 
 			// Assert
-			configuration.Path.Should().Be(Configuration<StandardLoglevel>.DefaultPath);
+			configuration.Path.Should().Be(StructuredLogfileConfiguration<StandardLoglevel>.DefaultPath);
 		}
 
 		[Test]

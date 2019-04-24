@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Logfile.Structured.UnitTests
 {
-	class ConfigurationBuilderTest
+	class StructuredLogfileConfigurationBuilderTest
 	{
 		public class Constructors
 		{
@@ -19,7 +19,7 @@ namespace Logfile.Structured.UnitTests
 			{
 				// Arrange
 				// Act
-				var obj = new ConfigurationBuilder<StandardLoglevel>();
+				var obj = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Assert
 				obj.LogEventDetailFormatters.Keys.Should().Contain(typeof(Core.Details.Binary));
@@ -37,7 +37,7 @@ namespace Logfile.Structured.UnitTests
 				// Arrange
 				// Act
 				// Assert
-				new ConfigurationBuilder<StandardLoglevel>().Build();
+				new StructuredLoglevelConfigurationBuilder<StandardLoglevel>().Build();
 			}
 
 			[Test]
@@ -47,7 +47,7 @@ namespace Logfile.Structured.UnitTests
 				var additionalStreamWriter = Mock.Of<IStreamWriter>();
 
 				// Act
-				var configuration = new ConfigurationBuilder<StandardLoglevel>()
+				var configuration = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>()
 					.UseWriter(additionalStreamWriter)
 					.Build();
 
@@ -65,7 +65,7 @@ namespace Logfile.Structured.UnitTests
 			{
 				// Arrange
 				var additionalStreamWriters = new[] { Mock.Of<IStreamWriter>() };
-				var builder = new ConfigurationBuilder<StandardLoglevel>
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>
 				{
 					LogEventDetailFormatters = new Dictionary<Type, Structured.Formatters.ILogEventDetailFormatter>
 						{
@@ -91,7 +91,7 @@ namespace Logfile.Structured.UnitTests
 			public void UseLogEventDetailFormatterTypeNull_ShouldThrow_ArgumentNullException()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Act
 				// Assert
@@ -102,7 +102,7 @@ namespace Logfile.Structured.UnitTests
 			public void UseLogEventDetailFormatterFormatterNull_ShouldThrow_ArgumentNullException()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Act
 				// Assert
@@ -113,7 +113,7 @@ namespace Logfile.Structured.UnitTests
 			public void UseLogEventDetailFormatter_Should_AddFormatterForType()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Act
 				builder.UseLogEventDetailFormatter(typeof(object), Mock.Of<ILogEventDetailFormatter>());
@@ -126,7 +126,7 @@ namespace Logfile.Structured.UnitTests
 			public void UseLogEventDetailFormatterForExistingType_Should_ReplaceFormatterForType()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 				var initialFormatter = Mock.Of<ILogEventDetailFormatter>();
 				var replacementFormatter = Mock.Of<ILogEventDetailFormatter>();
 
@@ -154,7 +154,7 @@ namespace Logfile.Structured.UnitTests
 			public void UseSensitiveSettingsNull_ShouldThrow_ArgumentNullException()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Act
 				// Assert
@@ -165,7 +165,7 @@ namespace Logfile.Structured.UnitTests
 			public void UseSensitiveSettings_Should_ApplySensitiveSettings()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Act
 				builder.UseSensitiveSettings(new Aes256SensitiveSettings(new byte[32]));
@@ -190,7 +190,7 @@ namespace Logfile.Structured.UnitTests
 			public void AddWriterNull_ShouldThrow_ArgumentNullException()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 
 				// Act
 				// Assert
@@ -201,7 +201,7 @@ namespace Logfile.Structured.UnitTests
 			public void AddWriter_Should_Succeed()
 			{
 				// Arrange
-				var builder = new ConfigurationBuilder<StandardLoglevel>();
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
 				var additionalStreamWriter = Mock.Of<IStreamWriter>();
 
 				// Act

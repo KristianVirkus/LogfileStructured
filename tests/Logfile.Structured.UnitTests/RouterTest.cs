@@ -18,11 +18,11 @@ namespace Logfile.Structured.UnitTests
 	{
 		class TestHelpers
 		{
-			public static Configuration<StandardLoglevel> CreateConfiguration(
+			public static StructuredLogfileConfiguration<StandardLoglevel> CreateConfiguration(
 				IEnumerable<IStreamWriter> additionalStreamWriters = null,
 				bool makeAdditionalStreamWritersNull = false)
 			{
-				return new Configuration<StandardLoglevel>(
+				return new StructuredLogfileConfiguration<StandardLoglevel>(
 					"test",
 					false,
 					false,
@@ -43,7 +43,7 @@ namespace Logfile.Structured.UnitTests
 			}
 
 			public static Router<StandardLoglevel> CreateRouter(
-				Configuration<StandardLoglevel> configuration = null,
+				StructuredLogfileConfiguration<StandardLoglevel> configuration = null,
 				bool makeConfigurationNull = false,
 				Stream outputStream = null,
 				bool makeOutputStreamNull = false)
@@ -59,11 +59,11 @@ namespace Logfile.Structured.UnitTests
 			public Logfile<StandardLoglevel> Logfile { get; set; }
 			public MemoryStream Stream { get; set; }
 			public Router<StandardLoglevel> Router { get; set; }
-			public Configuration<StandardLoglevel> Configuration { get; set; }
+			public StructuredLogfileConfiguration<StandardLoglevel> Configuration { get; set; }
 			public IEnumerable<IStreamWriter> AdditionalStreamWriters { get; set; }
 
 			public Setup(
-				Configuration<StandardLoglevel> configuration = null)
+				StructuredLogfileConfiguration<StandardLoglevel> configuration = null)
 			{
 				this.Logfile = new Logfile<StandardLoglevel>();
 				this.Stream = new MemoryStream();

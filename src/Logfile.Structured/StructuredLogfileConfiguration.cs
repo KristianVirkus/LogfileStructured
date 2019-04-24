@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Logfile.Structured
 {
-	public class Configuration<TLoglevel>
+	public class StructuredLogfileConfiguration<TLoglevel>
 		where TLoglevel : Enum
 	{
 		internal const string DefaultAppName = "None";
@@ -103,7 +103,7 @@ namespace Logfile.Structured
 		///	<exception cref="ArgumentNullException">Thrown if
 		///		<paramref name="logEventDetailFormatters"/> or
 		///		<paramref name="additionalStreamWriters"/> is null.</exception>
-		public Configuration(string appName, bool writeToConsole, bool writeToDebugConsole,
+		public StructuredLogfileConfiguration(string appName, bool writeToConsole, bool writeToDebugConsole,
 			bool writeToDisk, string path, string fileNameFormat, int? maximumLogfileSize, int? keepLogfiles,
 			IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters,
 			ISensitiveSettings sensitiveSettings, IEnumerable<IStreamWriter> additionalStreamWriters)

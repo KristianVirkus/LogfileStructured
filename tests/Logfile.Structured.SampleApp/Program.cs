@@ -15,15 +15,18 @@ namespace Logfile.Structured.SampleApp
 
 			Console.WriteLine("Building logfile configuration...");
 
-			var structuredLogfileConfiguration = new ConfigurationBuilder<StandardLoglevel>()
-				.UseAppName("SampleApp")
-				.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log")
-				.UsePath(".")
-				.UseConsole()
-				.UseDebugConsole()
-				.Build();
-			var structuredLogfileRouter = new Router<StandardLoglevel>();
-			await structuredLogfileRouter.ReconfigureAsync(structuredLogfileConfiguration, default);
+			// The structured logfile router can either be prepared this way or using
+			// the "AddStructuredLogfile" extension method on the logfile framework's
+			// configuration builder.
+			//var structuredLogfileConfiguration = new ConfigurationBuilder<StandardLoglevel>()
+			//	.UseAppName("SampleApp")
+			//	.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log")
+			//	.UsePath(".")
+			//	.UseConsole()
+			//	.UseDebugConsole()
+			//	.Build();
+			//var structuredLogfileRouter = new Router<StandardLoglevel>();
+			//await structuredLogfileRouter.ReconfigureAsync(structuredLogfileConfiguration, default);
 
 			// The configuration (extension) methods are ordered from specific to general.
 			// This is required to make use of the fluent syntax.
@@ -31,7 +34,15 @@ namespace Logfile.Structured.SampleApp
 				.AllowLoglevels(StandardLoglevel.Warning, StandardLoglevel.Critical)
 				.EnableDeveloperMode()
 				.UseLogEventsFromExceptionData()
-				.AddRouter(structuredLogfileRouter)
+				//.AddRouter(structuredLogfileRouter) // Alternative to the lines below.
+				.AddStructuredLogfile((_builder) =>
+					{
+						_builder.UseAppName("SampleApp");
+						_builder.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log");
+						_builder.UsePath(".");
+						_builder.UseConsole();
+						_builder.UseDebugConsole();
+					})
 				.Build();
 
 			Console.WriteLine("Initializing the logfile instance...");
@@ -73,6 +84,8 @@ namespace Logfile.Structured.SampleApp
 			// This is an exception as critical.
 			// Never attempt to divide by zero.
 			// This comes from within an exception object. This is logging without a logger reference.
+
+			logfile.Warning.Msg(new string('=', 1000)).Log();
 
 			await Task.Delay(TimeSpan.FromSeconds(1));
 			Console.WriteLine("Just waited a second to allow logfile to get flushed.");
