@@ -43,7 +43,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			DefaultStreamWriters = streamWriters;
 		}
 
-		static Configuration<StandardLoglevel> createConfiguration(
+		static StructuredLogfileConfiguration<StandardLoglevel> createConfiguration(
 			string appName = "app",
 			bool writeToConsole = false,
 			bool writeToDebugConsole = false,
@@ -58,7 +58,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			IEnumerable<IStreamWriter> additionalStreamWriters = null,
 			bool makeAdditionalStreamWritersNull = false)
 		{
-			return new Configuration<StandardLoglevel>(
+			return new StructuredLogfileConfiguration<StandardLoglevel>(
 				appName,
 				writeToConsole,
 				writeToDebugConsole,

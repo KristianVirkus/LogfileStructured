@@ -9,7 +9,7 @@ namespace Logfile.Structured
 	/// Implements a builder for the structured logfiles configuration.
 	/// </summary>
 	/// <typeparam name="TLoglevel">The loglevel type.</typeparam>
-	public class ConfigurationBuilder<TLoglevel>
+	public class StructuredLoglevelConfigurationBuilder<TLoglevel>
 		where TLoglevel : Enum
 	{
 		/// <summary>
@@ -72,7 +72,7 @@ namespace Logfile.Structured
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConfigurationBuilder"/> class.
 		/// </summary>
-		public ConfigurationBuilder()
+		public StructuredLoglevelConfigurationBuilder()
 		{
 			this.UseLogEventDetailFormatter(typeof(Core.Details.Binary), Structured.Formatters.Binary.Default);
 			this.UseLogEventDetailFormatter(typeof(Core.Details.EventID), Structured.Formatters.EventID.Default);
@@ -84,9 +84,9 @@ namespace Logfile.Structured
 		/// Builds the immutable configuration object.
 		/// </summary>
 		/// <returns>The configuration object.</returns>
-		public Configuration<TLoglevel> Build()
+		public StructuredLogfileConfiguration<TLoglevel> Build()
 		{
-			return new Configuration<TLoglevel>(
+			return new StructuredLogfileConfiguration<TLoglevel>(
 				this.AppName,
 				this.WriteToConsole,
 				this.WriteToDebugConsole,
@@ -111,8 +111,8 @@ namespace Logfile.Structured
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> or <paramref name="appName"/> is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseAppName<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, string appName)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseAppName<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, string appName)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -127,8 +127,8 @@ namespace Logfile.Structured
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseConsole<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseConsole<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -143,8 +143,8 @@ namespace Logfile.Structured
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseDebugConsole<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseDebugConsole<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -159,8 +159,8 @@ namespace Logfile.Structured
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> DoNotUseFileOnDisk<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> DoNotUseFileOnDisk<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -176,8 +176,8 @@ namespace Logfile.Structured
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> or <paramref name="path"/> is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UsePath<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, string path)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UsePath<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, string path)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -199,8 +199,8 @@ namespace Logfile.Structured
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> or <paramref name="fileNameFormat"/>
 		///		is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseFileNameFormat<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, string fileNameFormat)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseFileNameFormat<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, string fileNameFormat)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -220,8 +220,8 @@ namespace Logfile.Structured
 		///		is null.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="size"/>
 		///		is less than or equal to zero.</exception>
-		public static ConfigurationBuilder<TLoglevel> RestrictLogfileSize<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, int size)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> RestrictLogfileSize<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, int size)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -242,8 +242,8 @@ namespace Logfile.Structured
 		///		is null.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="count"/>
 		///		is less than or equal to zero.</exception>
-		public static ConfigurationBuilder<TLoglevel> KeepLogfiles<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, int count)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> KeepLogfiles<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, int count)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -264,8 +264,8 @@ namespace Logfile.Structured
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/>, <paramref name="logEventDetailType"/>,
 		///		or <paramref name="logEventDetailFormatter"/> is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseLogEventDetailFormatter<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, Type logEventDetailType,
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseLogEventDetailFormatter<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, Type logEventDetailType,
 			ILogEventDetailFormatter logEventDetailFormatter)
 			where TLoglevel : Enum
 		{
@@ -292,8 +292,8 @@ namespace Logfile.Structured
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> or <paramref name="sensitiveSettings"/>
 		///		is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseSensitiveSettings<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder, ISensitiveSettings sensitiveSettings)
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseSensitiveSettings<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder, ISensitiveSettings sensitiveSettings)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
@@ -311,8 +311,8 @@ namespace Logfile.Structured
 		/// <exception cref="ArgumentNullException">Thrown if either
 		///		<paramref name="configurationBuilder"/> or <paramref name="additionalStreamWriter"/>
 		///		is null.</exception>
-		public static ConfigurationBuilder<TLoglevel> UseWriter<TLoglevel>(
-			this ConfigurationBuilder<TLoglevel> configurationBuilder,
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseWriter<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder,
 			IStreamWriter additionalStreamWriter)
 			where TLoglevel : Enum
 		{

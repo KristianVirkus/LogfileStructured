@@ -73,7 +73,7 @@ namespace Logfile.Structured.UnitTests
 
 				// Assert
 				var router = logfileConfigurationBuilder.Routers.OfType<Router<StandardLoglevel>>().Single();
-				var configurationField = ((Configuration<StandardLoglevel>)router
+				var configurationField = ((StructuredLogfileConfiguration<StandardLoglevel>)router
 						.GetType()
 						.GetField("configuration", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
 						.GetValue(router));

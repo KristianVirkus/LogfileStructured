@@ -93,7 +93,7 @@ namespace Logfile.Structured.Elements
 			this.Miscellaneous = miscellaneous ?? throw new ArgumentNullException(nameof(miscellaneous));
 		}
 
-		public string Serialize(Configuration<TLoglevel> configuration)
+		public string Serialize(StructuredLogfileConfiguration<TLoglevel> configuration)
 		{
 			var sb = new StringBuilder();
 

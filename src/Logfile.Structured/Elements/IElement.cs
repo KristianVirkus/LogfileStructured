@@ -13,6 +13,6 @@ namespace Logfile.Structured.Elements
 		/// </summary>
 		/// <param name="configuration">The configuration.</param>
 		/// <returns>The string representation.</returns>
-		string Serialize(Configuration<TLoglevel> configuration);
+		string Serialize(StructuredLogfileConfiguration<TLoglevel> configuration);
 	}
 }
