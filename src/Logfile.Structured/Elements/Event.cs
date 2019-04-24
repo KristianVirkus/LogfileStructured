@@ -82,7 +82,7 @@ namespace Logfile.Structured.Elements
 
 		#region IElement implementation
 
-		public string Serialize(Configuration<TLoglevel> configuration)
+		public string Serialize(StructuredLogfileConfiguration<TLoglevel> configuration)
 		{
 			var eventIDs = this.LogEvent.Details.OfType<EventID>();
 			var eventID = eventIDs.FirstOrDefault();
@@ -122,7 +122,7 @@ namespace Logfile.Structured.Elements
 		/// <param name="firstLogEventDetailToCome">Whether there had already an event
 		///		be put out.</param>
 		/// <returns>The serialized elements.</returns>
-		static string subSerialize(Configuration<TLoglevel> configuration, List<object> details, bool firstLogEventDetailToCome)
+		static string subSerialize(StructuredLogfileConfiguration<TLoglevel> configuration, List<object> details, bool firstLogEventDetailToCome)
 		{
 			var sb = new StringBuilder();
 			while (details.Any())

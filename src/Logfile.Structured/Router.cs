@@ -18,12 +18,12 @@ namespace Logfile.Structured
 		where TLoglevel : Enum
 	{
 		readonly SemaphoreSlim sync = new SemaphoreSlim(1);
-		Configuration<TLoglevel> configuration;
+		StructuredLogfileConfiguration<TLoglevel> configuration;
 		FileStream fileStream = null;
 		int fileSequenceNo = 0;
 		long bytesWrittenToFile = 0;
 
-		public async Task ReconfigureAsync(Configuration<TLoglevel> configuration, CancellationToken cancellationToken)
+		public async Task ReconfigureAsync(StructuredLogfileConfiguration<TLoglevel> configuration, CancellationToken cancellationToken)
 		{
 			// Just call base configuration change, set new logfile configuration and
 			// tolerate some time of inconsistency. Reconfiguring on the fly is just not

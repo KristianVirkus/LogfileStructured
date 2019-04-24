@@ -28,7 +28,7 @@ namespace Logfile.Structured
 		///		the structured logfile router's configuration or while applying it.</exception>
 		public static LogfileConfigurationBuilder<TLoglevel> AddStructuredLogfile<TLoglevel>(
 			this LogfileConfigurationBuilder<TLoglevel> configurationBuilder,
-			Action<ConfigurationBuilder<TLoglevel>> configureCallback)
+			Action<StructuredLoglevelConfigurationBuilder<TLoglevel>> configureCallback)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null)
@@ -36,7 +36,7 @@ namespace Logfile.Structured
 				throw new ArgumentNullException(nameof(configurationBuilder));
 			}
 
-			var structuredConfigurationBuilder = new ConfigurationBuilder<TLoglevel>();
+			var structuredConfigurationBuilder = new StructuredLoglevelConfigurationBuilder<TLoglevel>();
 			configureCallback?.Invoke(structuredConfigurationBuilder);
 
 			// Add to Logfile.Core configuration.
