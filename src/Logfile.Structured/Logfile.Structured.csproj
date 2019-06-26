@@ -8,18 +8,31 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Copyright>Kristian Virkus</Copyright>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/KristianVirkus/LogfileStructured/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/KristianVirkus/LogfileStructured</PackageProjectUrl>
     <RepositoryUrl>https://github.com/KristianVirkus/LogfileStructured</RepositoryUrl>
     <PackageTags>logfile logger logging semantic structured details exception text id dump binary file console debug loglevel</PackageTags>
     <PackageIconUrl>https://raw.githubusercontent.com/KristianVirkus/LogfileStructured/master/res/icon.png</PackageIconUrl>
     <Description>This implementation for the Logfile framework allows logging to files or consoles in a structured fashion. Different information retain their types throughout the whole logging process even inside the logfile. Thus it can later be parsed easily for automated analysis or displaying purposes. The logging occurs in a textual format which is easily readable by humans.</Description>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <FileVersion>1.0.2.0</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\Logfile.Structured.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Logfile" Version="1.0.0" />
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Logfile" Version="1.0.2" />
   </ItemGroup>
 
 </Project>
