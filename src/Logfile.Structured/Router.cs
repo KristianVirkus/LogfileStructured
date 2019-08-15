@@ -78,7 +78,10 @@ namespace Logfile.Structured
 								{
 									// Initialize new file.
 									++this.fileSequenceNo;
-									this.fileStream = File.Open(getFileName(), FileMode.Create, FileAccess.Write, FileShare.Read);
+									if (!Directory.Exists(this.configuration.Path))
+										Directory.CreateDirectory(this.configuration.Path);
+									var filePath = Path.Combine(this.configuration.Path, getFileName());
+									this.fileStream = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
 								}
 
 								await this.fileStream.WriteAsync(data, 0, data.Length);

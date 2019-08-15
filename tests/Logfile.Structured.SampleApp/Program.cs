@@ -39,7 +39,7 @@ namespace Logfile.Structured.SampleApp
 					{
 						_builder.UseAppName("SampleApp");
 						_builder.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log");
-						_builder.UsePath(".");
+						_builder.UsePath("Logs");
 						_builder.UseConsole();
 						_builder.UseDebugConsole();
 					})
