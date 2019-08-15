@@ -171,8 +171,8 @@ namespace Logfile.Structured
 		/// <returns>The final filename.</returns>
 		string getFileName() => this.configuration.FileNameFormat
 			.Replace("{app-name}", this.configuration.AppName)
-			.Replace("{start-up-time}", System.Diagnostics.Process.GetCurrentProcess().StartTime.ToString("yyMMdd-HHmmss-fff"))
-			.Replace("{creation-time}", DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"))
+			.Replace("{start-up-time}", System.Diagnostics.Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd-HHmmssfff"))
+			.Replace("{creation-time}", DateTime.Now.ToString("yyyyMMdd-HHmmssfff"))
 			.Replace("{seq-no}", this.fileSequenceNo.ToString());
 
 		#endregion
