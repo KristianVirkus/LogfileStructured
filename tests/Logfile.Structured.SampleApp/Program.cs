@@ -55,6 +55,7 @@ namespace Logfile.Structured.SampleApp
 			logfile.Info.Force.Msg("This is the logfile.").Log();
 			logfile.Info.Msg("As this message is not forced and the minimum loglevel had been set above Information, this text will not appear in the logfile.").Log();
 			logfile.Warning.Msg("Log event not terminated by '.Log()' will not be logged at all.");
+			logfile.Error.Msg("The text contains some % characters which need to be `encoded` before writing.").Log();
 
 			logfile.Error.Developer.Msg("Due to developer mode, this will be printed regardless of the configured loglevels.");
 
