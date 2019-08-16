@@ -72,6 +72,13 @@ namespace Logfile.Structured
 		public IEnumerable<IStreamWriter> StreamWriters { get; }
 
 		/// <summary>
+		/// Gets or sets whether to beautify (debug) console output by stripping
+		/// entity and record separators (true.) The output matches the disk file
+		/// if false.
+		/// </summary>
+		public bool IsConsoleOutputBeautified { get; }
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="LogfileConfiguration"/> class.
 		/// </summary>
 		/// <param name="appName">The name of the application.</param>
@@ -97,6 +104,8 @@ namespace Logfile.Structured
 		///	<param name="sensitiveSettings">The sensitive data settings, can be null
 		///		if not configured.</param>
 		///	<param name="additionalStreamWriters">The additional stream writers.</param>
+		/// <param name="isConsoleOutputBeautified">true to beautify the (debug) console output,
+		///		false to match (debug) console output the disk file output.</param>
 		/// <exception cref="ArgumentOutOfRangeException">Thrown if either
 		///		<paramref name="maximumLogfileSize"/> or <paramref name="keepLogfiles"/>
 		///		is less than or equal to zero.</exception>
@@ -106,7 +115,8 @@ namespace Logfile.Structured
 		public StructuredLogfileConfiguration(string appName, bool writeToConsole, bool writeToDebugConsole,
 			bool writeToDisk, string path, string fileNameFormat, int? maximumLogfileSize, int? keepLogfiles,
 			IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters,
-			ISensitiveSettings sensitiveSettings, IEnumerable<IStreamWriter> additionalStreamWriters)
+			ISensitiveSettings sensitiveSettings, IEnumerable<IStreamWriter> additionalStreamWriters,
+			bool isConsoleOutputBeautified)
 		{
 			this.AppName = appName ?? (System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetExecutingAssembly())?.GetName().Name ?? DefaultAppName;
 			this.WriteToConsole = writeToConsole;
@@ -122,10 +132,9 @@ namespace Logfile.Structured
 			this.KeepLogfiles = keepLogfiles ?? DefaultKeepLogfiles;
 
 			this.LogEventDetailFormatters = logEventDetailFormatters ?? throw new ArgumentNullException(nameof(logEventDetailFormatters));
-
 			this.SensitiveSettings = sensitiveSettings;
-
 			this.StreamWriters = additionalStreamWriters ?? throw new ArgumentNullException(nameof(additionalStreamWriters));
+			this.IsConsoleOutputBeautified = isConsoleOutputBeautified;
 		}
 	}
 }

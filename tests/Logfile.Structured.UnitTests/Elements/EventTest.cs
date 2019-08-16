@@ -56,7 +56,8 @@ namespace Logfile.Structured.UnitTests.Elements
 			bool makeLogEventDetailFormattersNull = false,
 			ISensitiveSettings sensitiveSettings = null,
 			IEnumerable<IStreamWriter> additionalStreamWriters = null,
-			bool makeAdditionalStreamWritersNull = false)
+			bool makeAdditionalStreamWritersNull = false,
+			bool isConsoleOutputBeautified = false)
 		{
 			return new StructuredLogfileConfiguration<StandardLoglevel>(
 				appName,
@@ -69,7 +70,8 @@ namespace Logfile.Structured.UnitTests.Elements
 				keepLogfiles,
 				logEventDetailFormatters ?? (makeLogEventDetailFormattersNull ? null : DefaultLogEventDetailFormatters),
 				sensitiveSettings,
-				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters));
+				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters),
+				isConsoleOutputBeautified);
 		}
 
 		[Test]
