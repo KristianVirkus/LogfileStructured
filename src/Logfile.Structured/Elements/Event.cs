@@ -196,7 +196,7 @@ namespace Logfile.Structured.Elements
 				}
 
 				// Generate final output.
-				sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationSign}{ContentEncoding.Encode(id)}{QuotationSign}={QuotationSign}{ContentEncoding.Encode(content)}{QuotationSign}");
+				sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationSign}{ContentEncoding.Encode(id, additionalCharactersToEscape: (byte)QuotationSign)}{QuotationSign}={QuotationSign}{ContentEncoding.Encode(content, additionalCharactersToEscape: (byte)QuotationSign)}{QuotationSign}");
 				sb.Append(Constants.NewLine);
 
 				// All other log event details must be written in new lines.

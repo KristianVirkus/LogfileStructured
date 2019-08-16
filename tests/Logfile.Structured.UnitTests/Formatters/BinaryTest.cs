@@ -47,5 +47,18 @@ namespace Logfile.Structured.UnitTests.Formatters
 			// Assert
 			s.Should().Contain("Test");
 		}
+
+		[Test]
+		public void FormatEventWithWithBacktickInTranscript_Should_TreatBacktickAsControlCharacter()
+		{
+			// Arrange
+			var detail = new Logfile.Core.Details.Binary(Encoding.UTF8.GetBytes("test`d"));
+
+			// Act.
+			var s = Binary.Default.Format(detail);
+
+			// Assert
+			s.Should().Contain("test.d");
+		}
 	}
 }
