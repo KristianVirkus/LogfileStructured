@@ -39,7 +39,8 @@ namespace Logfile.Structured.UnitTests
 						// TODO { typeof(Core.Details.ExceptionDetail), Structured.Formatters.ExceptionDetail.Instance },
 					},
 					new Aes256SensitiveSettings(Encoding.UTF8.GetBytes(new string(' ', 32))),
-					additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : new IStreamWriter[0]));
+					additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : new IStreamWriter[0]),
+					false);
 			}
 
 			public static Router<StandardLoglevel> CreateRouter(

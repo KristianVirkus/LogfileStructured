@@ -43,11 +43,10 @@ namespace Logfile.Structured.UnitTests
 			string fileNameFormat = "logfile.log",
 			int? maximumLogfileSize = 1024,
 			int? keepLogfiles = 5,
-			IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters = null,
-			bool makeLogEventDetailFormattersNull = false,
+			IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters = null, bool makeLogEventDetailFormattersNull = false,
 			ISensitiveSettings sensitiveSettings = null,
-			IEnumerable<IStreamWriter> additionalStreamWriters = null,
-			bool makeAdditionalStreamWritersNull = false)
+			IEnumerable<IStreamWriter> additionalStreamWriters = null, bool makeAdditionalStreamWritersNull = false,
+			bool isConsoleOutputBeautified = false)
 		{
 			return new StructuredLogfileConfiguration<StandardLoglevel>(
 				appName,
@@ -60,7 +59,8 @@ namespace Logfile.Structured.UnitTests
 				keepLogfiles,
 				logEventDetailFormatters ?? (makeLogEventDetailFormattersNull ? null : DefaultLogEventDetailFormatters),
 				sensitiveSettings,
-				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters));
+				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters),
+				isConsoleOutputBeautified);
 		}
 
 		[Test]
@@ -82,7 +82,8 @@ namespace Logfile.Structured.UnitTests
 				keepLogfiles: 5,
 				logEventDetailFormatters: DefaultLogEventDetailFormatters,
 				sensitiveSettings: DefaultSensitiveSettings,
-				additionalStreamWriters: DefaultStreamWriters);
+				additionalStreamWriters: DefaultStreamWriters,
+				isConsoleOutputBeautified: true);
 
 			// Assert
 			configuration.AppName.Should().Be("test-app");
@@ -96,6 +97,7 @@ namespace Logfile.Structured.UnitTests
 			configuration.LogEventDetailFormatters.Should().BeSameAs(DefaultLogEventDetailFormatters);
 			configuration.SensitiveSettings.Should().BeSameAs(DefaultSensitiveSettings);
 			configuration.StreamWriters.Should().BeSameAs(DefaultStreamWriters);
+			configuration.IsConsoleOutputBeautified.Should().BeTrue();
 		}
 
 		[Test]

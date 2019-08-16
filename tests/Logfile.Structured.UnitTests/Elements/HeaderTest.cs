@@ -60,7 +60,8 @@ namespace Logfile.Structured.UnitTests.Elements
 				keepLogfiles,
 				logEventDetailFormatters ?? (makeLogEventDetailFormattersNull ? null : DefaultLogEventDetailFormatters),
 				sensitiveSettings,
-				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters));
+				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters),
+				false);
 		}
 
 		Header<StandardLoglevel> createHeader(
