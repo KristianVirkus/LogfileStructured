@@ -91,7 +91,7 @@ namespace Logfile.Structured.Formatters
 				IncludeHex,
 				IncludeTranscript,
 				NonPrintableCharacterSubstitute);
-			return $"{Introduction}{Constants.NewLine}{data}";
+			return $"{Introduction}{Constants.NewLine}{data.Replace(Event.QuotationSign, NonPrintableCharacterSubstitute)}";
 		}
 
 		#endregion
