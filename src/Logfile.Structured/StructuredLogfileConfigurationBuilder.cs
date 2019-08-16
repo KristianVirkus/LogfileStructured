@@ -70,7 +70,7 @@ namespace Logfile.Structured
 		public List<IStreamWriter> StreamWriters { get; set; } = new List<IStreamWriter>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ConfigurationBuilder"/> class.
+		/// Initializes a new instance of the <see cref="StructuredLoglevelConfigurationBuilder{TLoglevel}"/> class.
 		/// </summary>
 		public StructuredLoglevelConfigurationBuilder()
 		{
@@ -209,12 +209,12 @@ namespace Logfile.Structured
 		}
 
 		/// <summary>
-		/// Sets the maximum size of a single logfile when logfile rotation is enabled
-		/// before creating the next logfile with an increased sequence number but the
-		/// same instance ID. Also enables logfile rotation.
+		/// Sets the maximum size of a single logfile in bytes when logfile rotation is
+		/// enabled before creating the next logfile with an increased sequence number
+		/// but the same instance ID. Also enables logfile rotation.
 		/// </summary>
 		/// <param name="configurationBuilder">The configuration builder.</param>
-		/// <param name="size">The maximum logfile size.</param>
+		/// <param name="size">The maximum logfile size in bytes.</param>
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if <paramref name="configurationBuilder"/>
 		///		is null.</exception>
