@@ -37,13 +37,15 @@ namespace Logfile.Structured.SampleApp
 				.UseLogEventsFromExceptionData()
 				//.AddRouter(structuredLogfileRouter) // Alternative to the lines below.
 				.AddStructuredLogfile((_builder) =>
-					{
-						_builder.UseAppName("SampleApp");
-						_builder.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log");
-						_builder.UsePath("Logs");
-						_builder.UseConsole();
-						_builder.UseDebugConsole();
-					})
+				{
+					_builder
+						.UseAppName("SampleApp")
+						.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log")
+						.UsePath("Logs")
+						.UseConsole()
+						.UseDebugConsole()
+						.BeautifyConsoleOutput();
+				})
 				.Build();
 
 			Console.WriteLine("Initializing the logfile instance...");
@@ -90,12 +92,9 @@ namespace Logfile.Structured.SampleApp
 			logfile.Warning.Msg(new string('=', 1000)).Log();
 
 			Console.WriteLine("Flushing the write cache to the disk...");
-			// Wait a second until the logevents get forwarded to the router and the file gets created.
+			// Wait a second until the log events get forwarded to the router and the file gets created.
 			await Task.Delay(TimeSpan.FromSeconds(1));
 			await logfile.Configuration.Routers.OfType<Router<StandardLoglevel>>().Single().FlushAsync(default);
-
-			//Console.Write("Please hit RETURN to quit...");
-			//while (Console.ReadKey(true).Key != ConsoleKey.Enter) ;
 		}
 	}
 }
