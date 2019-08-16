@@ -2,6 +2,7 @@
 using Logfile.Core;
 using Logfile.Core.Details;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -88,11 +89,13 @@ namespace Logfile.Structured.SampleApp
 
 			logfile.Warning.Msg(new string('=', 1000)).Log();
 
+			Console.WriteLine("Flushing the write cache to the disk...");
+			// Wait a second until the logevents get forwarded to the router and the file gets created.
 			await Task.Delay(TimeSpan.FromSeconds(1));
-			Console.WriteLine("Just waited a second to allow logfile to get flushed.");
+			await logfile.Configuration.Routers.OfType<Router<StandardLoglevel>>().Single().FlushAsync(default);
 
-			Console.Write("Please hit RETURN to quit...");
-			while (Console.ReadKey(true).Key != ConsoleKey.Enter) ;
+			//Console.Write("Please hit RETURN to quit...");
+			//while (Console.ReadKey(true).Key != ConsoleKey.Enter) ;
 		}
 	}
 }

@@ -39,6 +39,24 @@ namespace Logfile.Structured
 			}
 		}
 
+		/// <summary>
+		/// Flushes the file write cache and thus actually writes it to the disk.
+		/// </summary>
+		/// <param name="cancellationToken">The <c>CancellationToken</c> to abort the process.</param>
+		public async Task FlushAsync(CancellationToken cancellationToken)
+		{
+			await this.sync.WaitAsync(cancellationToken);
+			try
+			{
+				if (this.fileStream != null)
+					await this.fileStream.FlushAsync(cancellationToken);
+			}
+			finally
+			{
+				this.sync.Release();
+			}
+		}
+
 		#region IRouter implementation
 
 		public Task StartAsync(CancellationToken cancellationToken)
