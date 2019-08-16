@@ -178,7 +178,7 @@ text" },
 				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
 				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value{Header<StandardLoglevel>.QuotationSign}"
 				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key text{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value"
-				+ $"\r\nmulti-line\r\ntext{Header<StandardLoglevel>.QuotationSign}"
+				+ $"\nmulti-line\ntext{Header<StandardLoglevel>.QuotationSign}"
 				+ $"{Constants.NewLine}";
 
 			serialized.Should().Be(expected);
