@@ -224,6 +224,22 @@ namespace Logfile.Structured.UnitTests
 					ConfigurationBuilderExtensions.UseWriter<StandardLoglevel>(null, additionalStreamWriter);
 				});
 			}
+
+			[Test]
+			public void BeautifyConsoleOutput_Should_Succeed()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Assert
+				builder.IsConsoleOutputBeautified.Should().BeFalse();
+
+				// Act
+				builder.BeautifyConsoleOutput();
+
+				// Assert
+				builder.IsConsoleOutputBeautified.Should().BeTrue();
+			}
 		}
 	}
 }

@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Logfile.Structured.Elements;
 
 namespace Logfile.Structured
 {
@@ -32,6 +33,24 @@ namespace Logfile.Structured
 			try
 			{
 				this.configuration = configuration;
+			}
+			finally
+			{
+				this.sync.Release();
+			}
+		}
+
+		/// <summary>
+		/// Flushes the file write cache and thus actually writes it to the disk.
+		/// </summary>
+		/// <param name="cancellationToken">The <c>CancellationToken</c> to abort the process.</param>
+		public async Task FlushAsync(CancellationToken cancellationToken)
+		{
+			await this.sync.WaitAsync(cancellationToken);
+			try
+			{
+				if (this.fileStream != null)
+					await this.fileStream.FlushAsync(cancellationToken);
 			}
 			finally
 			{
@@ -78,7 +97,10 @@ namespace Logfile.Structured
 								{
 									// Initialize new file.
 									++this.fileSequenceNo;
-									this.fileStream = File.Open(getFileName(), FileMode.Create, FileAccess.Write, FileShare.Read);
+									if (!Directory.Exists(this.configuration.Path))
+										Directory.CreateDirectory(this.configuration.Path);
+									var filePath = Path.Combine(this.configuration.Path, getFileName());
+									this.fileStream = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
 								}
 
 								await this.fileStream.WriteAsync(data, 0, data.Length);
@@ -113,12 +135,17 @@ namespace Logfile.Structured
 							}
 						}
 
+						// Set beautified text to text if no beautification is wanted, otherwise
+						// keep it null until required for the first time.
+						string beautifiedText = (configuration.IsConsoleOutputBeautified ? null : text);
+
 						// Write to console if enabled.
 						if (this.configuration.WriteToConsole)
 						{
 							try
 							{
-								Console.Write(text);
+								beautifiedText = beautifiedText ?? this.beautifyText(text);
+								Console.Write(beautifiedText);
 							}
 							catch
 							{
@@ -131,7 +158,8 @@ namespace Logfile.Structured
 						{
 							try
 							{
-								Debug.Write(text);
+								beautifiedText = beautifiedText ?? this.beautifyText(text);
+								Debug.Write(beautifiedText);
 							}
 							catch
 							{
@@ -174,6 +202,19 @@ namespace Logfile.Structured
 			.Replace("{start-up-time}", System.Diagnostics.Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd-HHmmssfff"))
 			.Replace("{creation-time}", DateTime.Now.ToString("yyyyMMdd-HHmmssfff"))
 			.Replace("{seq-no}", this.fileSequenceNo.ToString());
+
+		/// <summary>
+		/// Strips structural characters (from the structured logfile format) from a string.
+		/// </summary>
+		/// <param name="s">The string.</param>
+		/// <returns>The processed text without structural characters.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if <paramref name="s"/> is null.</exception>
+		string beautifyText(string s)
+		{
+			if (s == null) throw new ArgumentNullException(nameof(s));
+
+			return s.Replace(Constants.EntitySeparator, "").Replace(Event.RecordSeparator, "");
+		}
 
 		#endregion
 	}

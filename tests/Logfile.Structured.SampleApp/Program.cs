@@ -2,6 +2,7 @@
 using Logfile.Core;
 using Logfile.Core.Details;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,13 +37,15 @@ namespace Logfile.Structured.SampleApp
 				.UseLogEventsFromExceptionData()
 				//.AddRouter(structuredLogfileRouter) // Alternative to the lines below.
 				.AddStructuredLogfile((_builder) =>
-					{
-						_builder.UseAppName("SampleApp");
-						_builder.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log");
-						_builder.UsePath(".");
-						_builder.UseConsole();
-						_builder.UseDebugConsole();
-					})
+				{
+					_builder
+						.UseAppName("SampleApp")
+						.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log")
+						.UsePath("Logs")
+						.UseConsole()
+						.UseDebugConsole()
+						.BeautifyConsoleOutput();
+				})
 				.Build();
 
 			Console.WriteLine("Initializing the logfile instance...");
@@ -55,6 +58,7 @@ namespace Logfile.Structured.SampleApp
 			logfile.Info.Force.Msg("This is the logfile.").Log();
 			logfile.Info.Msg("As this message is not forced and the minimum loglevel had been set above Information, this text will not appear in the logfile.").Log();
 			logfile.Warning.Msg("Log event not terminated by '.Log()' will not be logged at all.");
+			logfile.Error.Msg("The text contains some % characters which need to be `encoded` before writing.").Log();
 
 			logfile.Error.Developer.Msg("Due to developer mode, this will be printed regardless of the configured loglevels.");
 
@@ -87,10 +91,12 @@ namespace Logfile.Structured.SampleApp
 
 			logfile.Warning.Msg(new string('=', 1000)).Log();
 
+			Console.WriteLine("Flushing the write cache to the disk...");
+			// Wait a second until the log events get forwarded to the router and the file gets created.
 			await Task.Delay(TimeSpan.FromSeconds(1));
-			Console.WriteLine("Just waited a second to allow logfile to get flushed.");
+			await logfile.Configuration.Routers.OfType<Router<StandardLoglevel>>().Single().FlushAsync(default);
 
-			Console.Write("Please hit RETURN to quit...");
+			Console.Write("All log events should be written to disk by now. Please hit RETURN to quit...");
 			while (Console.ReadKey(true).Key != ConsoleKey.Enter) ;
 		}
 	}

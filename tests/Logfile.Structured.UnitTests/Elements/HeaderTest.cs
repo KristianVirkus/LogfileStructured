@@ -60,7 +60,8 @@ namespace Logfile.Structured.UnitTests.Elements
 				keepLogfiles,
 				logEventDetailFormatters ?? (makeLogEventDetailFormattersNull ? null : DefaultLogEventDetailFormatters),
 				sensitiveSettings,
-				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters));
+				additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : DefaultStreamWriters),
+				false);
 		}
 
 		Header<StandardLoglevel> createHeader(
@@ -165,9 +166,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			var miscellaneous = new Dictionary<string, string>
 			{
 				{ "key", "value" },
-				{ "key text", @"value
-multi-line
-text" },
+				{ "key text", "value\nmulti-line\ntext" },
 			};
 
 			var serialized = this.createHeader(appStartUpTime: time, appInstanceID: instanceID, miscellaneous: miscellaneous).Serialize(configuration);
@@ -178,7 +177,7 @@ text" },
 				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
 				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value{Header<StandardLoglevel>.QuotationSign}"
 				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key text{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value"
-				+ $"\r\nmulti-line\r\ntext{Header<StandardLoglevel>.QuotationSign}"
+				+ $"\nmulti-line\ntext{Header<StandardLoglevel>.QuotationSign}"
 				+ $"{Constants.NewLine}";
 
 			serialized.Should().Be(expected);

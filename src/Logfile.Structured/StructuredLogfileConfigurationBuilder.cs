@@ -70,7 +70,14 @@ namespace Logfile.Structured
 		public List<IStreamWriter> StreamWriters { get; set; } = new List<IStreamWriter>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ConfigurationBuilder"/> class.
+		/// Gets or sets whether to beautify (debug) console output by stripping
+		/// entity and record separators (true.) The output matches the disk file
+		/// if false.
+		/// </summary>
+		public bool IsConsoleOutputBeautified { get; set; }
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="StructuredLoglevelConfigurationBuilder{TLoglevel}"/> class.
 		/// </summary>
 		public StructuredLoglevelConfigurationBuilder()
 		{
@@ -97,7 +104,8 @@ namespace Logfile.Structured
 				this.KeepLogfiles,
 				this.LogEventDetailFormatters ?? new Dictionary<Type, ILogEventDetailFormatter>(),
 				this.SensitiveSettings,
-				this.StreamWriters);
+				this.StreamWriters,
+				this.IsConsoleOutputBeautified);
 		}
 	}
 
@@ -209,12 +217,12 @@ namespace Logfile.Structured
 		}
 
 		/// <summary>
-		/// Sets the maximum size of a single logfile when logfile rotation is enabled
-		/// before creating the next logfile with an increased sequence number but the
-		/// same instance ID. Also enables logfile rotation.
+		/// Sets the maximum size of a single logfile in bytes when logfile rotation is
+		/// enabled before creating the next logfile with an increased sequence number
+		/// but the same instance ID. Also enables logfile rotation.
 		/// </summary>
 		/// <param name="configurationBuilder">The configuration builder.</param>
-		/// <param name="size">The maximum logfile size.</param>
+		/// <param name="size">The maximum logfile size in bytes.</param>
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if <paramref name="configurationBuilder"/>
 		///		is null.</exception>
@@ -322,6 +330,24 @@ namespace Logfile.Structured
 			if (configurationBuilder.StreamWriters == null)
 				configurationBuilder.StreamWriters = new List<IStreamWriter>();
 			configurationBuilder.StreamWriters.Add(additionalStreamWriter);
+			return configurationBuilder;
+		}
+
+		/// <summary>
+		/// Instructs the router to beautify the output for the (debug) console.
+		/// </summary>
+		/// <typeparam name="TLoglevel">The loglevel type.</typeparam>
+		/// <param name="configurationBuilder">The configuration builder.</param>
+		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
+		/// <exception cref="ArgumentNullException">Thrown if either
+		///		<paramref name="configurationBuilder"/> or <paramref name="sensitiveSettings"/>
+		///		is null.</exception>
+		public static StructuredLoglevelConfigurationBuilder<TLoglevel> BeautifyConsoleOutput<TLoglevel>(
+			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder)
+			where TLoglevel : Enum
+		{
+			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
+			configurationBuilder.IsConsoleOutputBeautified = true;
 			return configurationBuilder;
 		}
 	}
