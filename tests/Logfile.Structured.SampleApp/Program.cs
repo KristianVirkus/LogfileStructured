@@ -95,6 +95,9 @@ namespace Logfile.Structured.SampleApp
 			// Wait a second until the log events get forwarded to the router and the file gets created.
 			await Task.Delay(TimeSpan.FromSeconds(1));
 			await logfile.Configuration.Routers.OfType<Router<StandardLoglevel>>().Single().FlushAsync(default);
+
+			Console.Write("All log events should be written to disk by now. Please hit RETURN to quit...");
+			while (Console.ReadKey(true).Key != ConsoleKey.Enter) ;
 		}
 	}
 }
