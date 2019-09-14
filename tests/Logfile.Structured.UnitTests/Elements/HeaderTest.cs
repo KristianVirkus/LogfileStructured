@@ -166,9 +166,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			var miscellaneous = new Dictionary<string, string>
 			{
 				{ "key", "value" },
-				{ "key text", @"value
-multi-line
-text" },
+				{ "key text", "value\nmulti-line\ntext" },
 			};
 
 			var serialized = this.createHeader(appStartUpTime: time, appInstanceID: instanceID, miscellaneous: miscellaneous).Serialize(configuration);
