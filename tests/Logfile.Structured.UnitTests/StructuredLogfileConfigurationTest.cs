@@ -108,7 +108,7 @@ namespace Logfile.Structured.UnitTests
 			var configuration = createConfiguration(appName: null);
 
 			// Assert
-			configuration.AppName.Should().BeOneOf("testhost", StructuredLogfileConfiguration<StandardLoglevel>.DefaultAppName);
+			configuration.AppName.Should().NotBeNull();
 		}
 
 		[Test]

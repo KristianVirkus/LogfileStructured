@@ -95,11 +95,13 @@ namespace Logfile.Structured
 							{
 								if (this.fileStream == null)
 								{
+									// TODO Clean up old logfiles.
+
 									// Initialize new file.
 									++this.fileSequenceNo;
 									if (!Directory.Exists(this.configuration.Path))
 										Directory.CreateDirectory(this.configuration.Path);
-									var filePath = Path.Combine(this.configuration.Path, getFileName());
+									var filePath = Path.Combine(this.configuration.Path, this.configuration.BuildFileName(this.fileSequenceNo));
 									this.fileStream = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
 								}
 
@@ -191,17 +193,6 @@ namespace Logfile.Structured
 				this.sync.Release();
 			}
 		}
-
-		/// <summary>
-		/// Replaces common placeholders in the set-up filename format with
-		/// actual values from the context.
-		/// </summary>
-		/// <returns>The final filename.</returns>
-		string getFileName() => this.configuration.FileNameFormat
-			.Replace("{app-name}", this.configuration.AppName)
-			.Replace("{start-up-time}", System.Diagnostics.Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd-HHmmssfff"))
-			.Replace("{creation-time}", DateTime.Now.ToString("yyyyMMdd-HHmmssfff"))
-			.Replace("{seq-no}", this.fileSequenceNo.ToString());
 
 		/// <summary>
 		/// Strips structural characters (from the structured logfile format) from a string.
