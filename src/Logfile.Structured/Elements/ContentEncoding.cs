@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Logfile.Structured.Elements
 {
@@ -39,6 +40,44 @@ namespace Logfile.Structured.Elements
 			}
 
 			return s;
+		}
+
+		/// <summary>
+		/// Decodes an escaped string. The encoding resembles the URI encoding
+		/// scheme and is compatible to it when it comes to decoding
+		/// </summary>
+		/// <param name="s">The encoded string.</param>
+		/// <returns>The decoded string.</returns>
+		/// <exception cref="ArgumentNullException">Thrown, if
+		///		<paramref name="s"/> is null.</exception>
+		///	<exception cref="FormatException">Thrown, if
+		///		<paramref name="s"/> contains an incomplete or invalid escape code.</exception>
+		public static string Decode(string s)
+		{
+			if (s == null) throw new ArgumentNullException(nameof(s));
+
+			const char Escape = '%';
+			var sb = new StringBuilder();
+			int i = 0;
+			while (i < s.Length)
+			{
+				var ch = s[i];
+				if (ch != Escape)
+				{
+					sb.Append(ch);
+					++i;
+				}
+				else
+				{
+					if (s.Length < i + 2 + 1) throw new FormatException("Invalid string format.");
+					var escapeCode = s.Substring(i + 1, 2);
+					var escapedChar = (char)byte.Parse(escapeCode, System.Globalization.NumberStyles.HexNumber);
+					sb.Append(escapedChar);
+					i += 3;
+				}
+			}
+
+			return sb.ToString();
 		}
 
 		/// <summary>

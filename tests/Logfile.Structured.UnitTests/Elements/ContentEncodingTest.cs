@@ -71,6 +71,80 @@ value");
 
 		public class Decode
 		{
+			[Test]
+			public void StringNull_ShouldThrow_ArgumentNullException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentNullException>(() => ContentEncoding.Decode(s: null));
+			}
+
+			[Test]
+			public void StringEmpty_ShouldReturn_EmptyString()
+			{
+				// Arrange
+				// Act
+				// Assert
+				ContentEncoding.Decode(s: "").Should().Be("");
+			}
+
+			[Test]
+			public void StringWithoutEscapeSequences_ShouldReturn_String()
+			{
+				// Arrange
+				var s = "This is a \"test\".";
+
+				// Act
+				var decoded = ContentEncoding.Decode(s: s);
+
+				// Assert
+				decoded.Should().Be(s);
+			}
+
+			[Test]
+			public void StringWithPerCentEscaped_Should_DecodeToPerCent()
+			{
+				// Arrange
+				var s = "Done 100%.";
+
+				// Act
+				var decoded = ContentEncoding.Decode(s: ContentEncoding.Encode(s: s));
+
+				// Assert
+				decoded.Should().Be(s);
+			}
+
+			[Test]
+			public void StringWithAdditionallyEncodedCharacters_Should_DecodeCorrectly()
+			{
+				// Arrange
+				var s = "This is an `encoding` example with some @dditional %%char%% to be encoded and some n#t.";
+
+				// Act
+				var decoded = ContentEncoding.Decode(s: ContentEncoding.Encode(s: s, (byte)'`', (byte)'@'));
+
+				// Assert
+				decoded.Should().Be(s);
+			}
+
+			[Test]
+			public void IncompleteEscapeSequenceAtStringEnding_ShouldThrow_FormatException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.Decode(s: "Test %1"));
+			}
+
+			[TestCase("Test %% Test")]
+			[TestCase("Test %xx Test")]
+			[TestCase("Test %")]
+			[TestCase("Test %1")]
+			public void InvalidEscapeSequenceAtStringEnding_ShouldThrow_FormatException(string s)
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.Decode(s: s));
+			}
 		}
 
 		public class GetLines
