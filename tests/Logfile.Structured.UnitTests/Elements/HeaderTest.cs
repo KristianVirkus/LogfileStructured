@@ -9,11 +9,12 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace Logfile.Structured.UnitTests.Elements
 {
-	class HeaderTest
+	static class HeaderTest
 	{
 		static readonly IReadOnlyDictionary<Type, ILogEventDetailFormatter> DefaultLogEventDetailFormatters = new Dictionary<Type, ILogEventDetailFormatter>()
 		{
@@ -64,10 +65,9 @@ namespace Logfile.Structured.UnitTests.Elements
 				false);
 		}
 
-		Header<StandardLoglevel> createHeader(
+		static Header<StandardLoglevel> createHeader(
 			string appName = "TestApp",
 			DateTime? appStartUpTime = null,
-			Guid? appInstanceID = null,
 			int appInstanceSequenceNumber = 1,
 			Dictionary<string, string> miscellaneous = null,
 			bool makeMiscellaneousNull = false)
@@ -75,112 +75,253 @@ namespace Logfile.Structured.UnitTests.Elements
 			return new Header<StandardLoglevel>(
 				appName,
 				appStartUpTime ?? DateTime.Now,
-				appInstanceID ?? Guid.NewGuid(),
 				appInstanceSequenceNumber,
 				miscellaneous ?? (makeMiscellaneousNull ? null : new Dictionary<string, string>()));
 		}
 
-		[Test]
-		public void ConstructorWithAppNameNull_ShouldThrow_ArgumentNullException()
+		public class Constructors
 		{
-			Assert.Throws<ArgumentNullException>(() => this.createHeader(appName: null));
-		}
-
-		[Test]
-		public void ConstructorWithMiscellaneousInformationNull_ShouldThrow_ArgumentNullException()
-		{
-			Assert.Throws<ArgumentNullException>(() => this.createHeader(miscellaneous: null, makeMiscellaneousNull: true));
-		}
-
-		[Test]
-		public void Constructor_Should_SetProperties()
-		{
-			var time = DateTime.Now;
-			var instanceID = Guid.NewGuid();
-			var obj = this.createHeader(
-				appName: "TestApp",
-				appStartUpTime: time,
-				appInstanceID: instanceID,
-				appInstanceSequenceNumber: 1,
-				miscellaneous: new Dictionary<string, string>());
-			obj.AppName.Should().Be("TestApp");
-			obj.AppStartUpTime.Should().Be(time);
-			obj.AppInstanceLogfileSequenceNumber.Should().Be(1);
-			obj.Miscellaneous.Should().BeEmpty();
-		}
-
-		[Test]
-		public void SerializeWithSimpleValues_Should_ProduceValidOutput()
-		{
-			var configuration = createConfiguration();
-			var time = DateTime.Now;
-			var instanceID = Guid.NewGuid();
-			var miscellaneous = new Dictionary<string, string>
+			[Test]
+			public void ConstructorWithAppNameNull_ShouldThrow_ArgumentNullException()
 			{
-				{ "key", "value" },
-			};
+				Assert.Throws<ArgumentNullException>(() => createHeader(appName: null));
+			}
 
-			var serialized = this.createHeader(appStartUpTime: time, appInstanceID: instanceID, miscellaneous: miscellaneous).Serialize(configuration);
-
-			var expected = $"{Constants.EntitySeparator}{Header<StandardLoglevel>.LogfileIdentity}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Header<StandardLoglevel>.QuotationSign}TestApp{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Header<StandardLoglevel>.QuotationSign}{time.ToIso8601String()}{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
-				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Constants.NewLine}";
-
-			serialized.Should().Be(expected);
-		}
-
-		[Test]
-		public void SerializeWithValuesToEscape_Should_ProduceEscapedOutput()
-		{
-			var configuration = createConfiguration();
-			var time = DateTime.Now;
-			var instanceID = Guid.NewGuid();
-			var miscellaneous = new Dictionary<string, string>
+			[Test]
+			public void ConstructorWithMiscellaneousInformationNull_ShouldThrow_ArgumentNullException()
 			{
-				{ "key", "value" },
-				{ "key%text", @"value`text" },
-			};
+				Assert.Throws<ArgumentNullException>(() => createHeader(miscellaneous: null, makeMiscellaneousNull: true));
+			}
 
-			var serialized = this.createHeader(appStartUpTime: time, appInstanceID: instanceID, miscellaneous: miscellaneous).Serialize(configuration);
-
-			var expected = $"{Constants.EntitySeparator}{Header<StandardLoglevel>.LogfileIdentity}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Header<StandardLoglevel>.QuotationSign}TestApp{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Header<StandardLoglevel>.QuotationSign}{time.ToIso8601String()}{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
-				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key%25text{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value%60text{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Constants.NewLine}";
-
-			serialized.Should().Be(expected);
+			[Test]
+			public void Constructor_Should_SetProperties()
+			{
+				var time = DateTime.Now;
+				var instanceID = Guid.NewGuid();
+				var obj = createHeader(
+					appName: "TestApp",
+					appStartUpTime: time,
+					appInstanceSequenceNumber: 1,
+					miscellaneous: new Dictionary<string, string>());
+				obj.AppName.Should().Be("TestApp");
+				obj.AppStartUpTime.Should().Be(time);
+				obj.AppInstanceLogfileSequenceNumber.Should().Be(1);
+				obj.Miscellaneous.Should().BeEmpty();
+			}
 		}
 
-		[Test]
-		public void SerializeWithLineBreaksInValues_Should_ProduceMultiLineOutput()
+		public class Serialization
 		{
-			var configuration = createConfiguration();
-			var time = DateTime.Now;
-			var instanceID = Guid.NewGuid();
-			var miscellaneous = new Dictionary<string, string>
+			[Test]
+			public void SerializeWithSimpleValues_Should_ProduceValidOutput()
+			{
+				var configuration = createConfiguration();
+				var time = DateTime.Now;
+				var miscellaneous = new Dictionary<string, string>
+				{
+					{ "key", "value" },
+				};
+
+				var serialized = createHeader(appStartUpTime: time, miscellaneous: miscellaneous).Serialize(configuration);
+
+				var expected = $"{Header<StandardLoglevel>.LogfileIdentity}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationSign}TestApp{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationSign}{time.ToIso8601String()}{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key{Constants.QuotationSign}={Constants.QuotationSign}value{Constants.QuotationSign}"
+					+ $"{Constants.EntitySeparator}";
+
+				serialized.Should().Be(expected);
+			}
+
+			[Test]
+			public void SerializeWithValuesToEscape_Should_ProduceEscapedOutput()
+			{
+				var configuration = createConfiguration();
+				var time = DateTime.Now;
+				var miscellaneous = new Dictionary<string, string>
+				{
+					{ "key", "value" },
+					{ "key%text", @"value`text" },
+				};
+
+				var serialized = createHeader(appStartUpTime: time, miscellaneous: miscellaneous).Serialize(configuration);
+
+				var expected = $"{Header<StandardLoglevel>.LogfileIdentity}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationSign}TestApp{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationSign}{time.ToIso8601String()}{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key{Constants.QuotationSign}={Constants.QuotationSign}value{Constants.QuotationSign}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key%25text{Constants.QuotationSign}={Constants.QuotationSign}value%60text{Constants.QuotationSign}"
+					+ $"{Constants.EntitySeparator}";
+
+				serialized.Should().Be(expected);
+			}
+
+			[Test]
+			public void SerializeWithLineBreaksInValues_Should_ProduceMultiLineOutput()
+			{
+				var configuration = createConfiguration();
+				var time = DateTime.Now;
+				var miscellaneous = new Dictionary<string, string>
 			{
 				{ "key", "value" },
 				{ "key text", "value\nmulti-line\ntext" },
 			};
 
-			var serialized = this.createHeader(appStartUpTime: time, appInstanceID: instanceID, miscellaneous: miscellaneous).Serialize(configuration);
+				var serialized = createHeader(appStartUpTime: time, miscellaneous: miscellaneous).Serialize(configuration);
 
-			var expected = $"{Constants.EntitySeparator}{Header<StandardLoglevel>.LogfileIdentity}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Header<StandardLoglevel>.QuotationSign}TestApp{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Header<StandardLoglevel>.QuotationSign}{time.ToIso8601String()}{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Header<StandardLoglevel>.RecordSeparator}{Header<StandardLoglevel>.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
-				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Constants.NewLine}{Header<StandardLoglevel>.RecordSeparator}{Constants.Indent}{Header<StandardLoglevel>.QuotationSign}key text{Header<StandardLoglevel>.QuotationSign}={Header<StandardLoglevel>.QuotationSign}value"
-				+ $"\nmulti-line\ntext{Header<StandardLoglevel>.QuotationSign}"
-				+ $"{Constants.NewLine}";
+				var expected = $"{Header<StandardLoglevel>.LogfileIdentity}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationSign}TestApp{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationSign}{time.ToIso8601String()}{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key{Constants.QuotationSign}={Constants.QuotationSign}value{Constants.QuotationSign}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key text{Constants.QuotationSign}={Constants.QuotationSign}value"
+					+ $"\nmulti-line\ntext{Constants.QuotationSign}"
+					+ $"{Constants.EntitySeparator}";
 
-			serialized.Should().Be(expected);
+				serialized.Should().Be(expected);
+			}
+		}
+
+		public class Parsing
+		{
+			[Test]
+			public void ParseWithSimpleValues_Should_ProduceValidOutput()
+			{
+				var configuration = createConfiguration();
+				var time = DateTime.Now;
+				var miscellaneous = new Dictionary<string, string>
+				{
+					{ "key", "value" },
+				};
+
+				var header = createHeader(appStartUpTime: time, miscellaneous: miscellaneous);
+				var serialized = header.Serialize(configuration);
+				var data = Encoding.UTF8.GetBytes(serialized);
+				var parsed = Header<StandardLoglevel>.Parse(
+					data: data,
+					encoding: Encoding.UTF8,
+					timeZone: TimeZoneInfo.Local);
+
+				parsed.MoreDataRequired.Should().BeFalse();
+				parsed.ConsumedData.Should().Be(data.Length);
+				var parsedHeader = (Header<StandardLoglevel>)parsed.Element;
+				parsedHeader.AppName.Should().Be(header.AppName);
+				parsedHeader.AppStartUpTime.Should().Be(time);
+				parsedHeader.AppInstanceLogfileSequenceNumber.Should().Be(1);
+				parsedHeader.Miscellaneous.Single().Key.Should().Be("key");
+				parsedHeader.Miscellaneous.Single().Value.Should().Be("value");
+			}
+
+			// With undefined time zone
+			// Key without quotation signs
+			// Value without quotation signs
+
+			//public void ParseWithMiscellaneousFlags_Should_ProduceValidOutput()
+
+			[Test]
+			public void ParseWithMiscellaneousKeyValueQuotationStyles_Should_ProduceValidOutput()
+			{
+				var configuration = createConfiguration();
+				var time = DateTime.Now;
+
+				var header = createHeader(appStartUpTime: time);
+				var serialized = header.Serialize(configuration);
+				var tempSerialized = serialized.Remove(serialized.Length - 1);
+				tempSerialized = tempSerialized + $"{Constants.RecordSeparator}`key`=`value`{Constants.RecordSeparator}key2=`value2`{Constants.RecordSeparator}`key3`=value3{Constants.RecordSeparator}   key4  =  value4  {Constants.RecordSeparator}`key5`  =  `value5`" + Constants.EntitySeparator;
+				var data = Encoding.UTF8.GetBytes(tempSerialized);
+				var parsed = Header<StandardLoglevel>.Parse(
+					data: data,
+					encoding: Encoding.UTF8,
+					timeZone: TimeZoneInfo.Local);
+
+				parsed.MoreDataRequired.Should().BeFalse();
+				parsed.ConsumedData.Should().Be(data.Length);
+				var parsedHeader = (Header<StandardLoglevel>)parsed.Element;
+				parsedHeader.AppName.Should().Be(header.AppName);
+				parsedHeader.AppStartUpTime.Should().Be(time);
+				parsedHeader.AppInstanceLogfileSequenceNumber.Should().Be(1);
+				parsedHeader.Miscellaneous.Count.Should().Be(5);
+				parsedHeader.Miscellaneous.ElementAt(0).Key.Should().Be("key");
+				parsedHeader.Miscellaneous.ElementAt(0).Value.Should().Be("value");
+				parsedHeader.Miscellaneous.ElementAt(1).Key.Should().Be("key2");
+				parsedHeader.Miscellaneous.ElementAt(1).Value.Should().Be("value2");
+				parsedHeader.Miscellaneous.ElementAt(2).Key.Should().Be("key3");
+				parsedHeader.Miscellaneous.ElementAt(2).Value.Should().Be("value3");
+				parsedHeader.Miscellaneous.ElementAt(3).Key.Should().Be("key4");
+				parsedHeader.Miscellaneous.ElementAt(3).Value.Should().Be("value4");
+				parsedHeader.Miscellaneous.ElementAt(4).Key.Should().Be("key5");
+				parsedHeader.Miscellaneous.ElementAt(4).Value.Should().Be("value5");
+			}
+
+			[Test]
+			public void InvalidHeaderIdentity_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var configuration = createConfiguration();
+				var time = DateTime.Now;
+
+				var header = createHeader();
+				var serialized = header.Serialize(configuration);
+				serialized = 'X' + serialized.Substring(1);
+				var data = Encoding.UTF8.GetBytes(serialized);
+
+				// Act & Assert
+				Assert.Throws<FormatException>(
+					() => Header<StandardLoglevel>.Parse(
+						data: data,
+						encoding: Encoding.UTF8,
+						timeZone: TimeZoneInfo.Local));
+			}
+
+			[Test]
+			public void EmptyAppName_Should_Ignore()
+			{
+				// Arrange
+				var configuration = createConfiguration();
+
+				var header = createHeader(appName: "");
+				var serialized = header.Serialize(configuration);
+				var data = Encoding.UTF8.GetBytes(serialized);
+
+				// Act
+				var parsed = Header<StandardLoglevel>.Parse(
+					data: data,
+					encoding: Encoding.UTF8,
+					timeZone: TimeZoneInfo.Local);
+
+				// Assert
+				parsed.MoreDataRequired.Should().BeFalse();
+				parsed.ConsumedData.Should().Be(Encoding.UTF8.GetBytes(serialized.TrimEnd('\n')).Length);
+				var parsedHeader = (Header<StandardLoglevel>)parsed.Element;
+				parsedHeader.AppName.Should().Be(header.AppName);
+				parsedHeader.AppStartUpTime.Should().Be(header.AppStartUpTime);
+				parsedHeader.AppInstanceLogfileSequenceNumber.Should().Be(header.AppInstanceLogfileSequenceNumber);
+				parsedHeader.Miscellaneous.Should().BeEmpty();
+			}
+
+			[Test]
+			public void MissingAppName_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var configuration = createConfiguration();
+
+				var header = createHeader();
+				var serialized = header.Serialize(configuration).Replace($"app={Constants.QuotationSign}{header.AppName}{Constants.QuotationSign}", "");
+				var data = Encoding.UTF8.GetBytes(serialized);
+
+				// Act & Assert
+				Assert.Throws<FormatException>(
+					() => Header<StandardLoglevel>.Parse(
+						data: data,
+						encoding: Encoding.UTF8,
+						timeZone: TimeZoneInfo.Local));
+			}
+
+			// invalid app name record literal
+			// invalid start-up time record literal
+			// invalid seq-no record literal
 		}
 	}
 }

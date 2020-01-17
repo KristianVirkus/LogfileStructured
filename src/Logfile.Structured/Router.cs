@@ -1,5 +1,6 @@
 ﻿using EventRouter.Core;
 using Logfile.Core;
+using Logfile.Structured.Elements;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +8,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Logfile.Structured.Elements;
 
 namespace Logfile.Structured
 {
@@ -95,7 +95,8 @@ namespace Logfile.Structured
 							{
 								if (this.fileStream == null)
 								{
-									// TODO Clean up old logfiles.
+									// Clean up old logfiles.
+									this.cleanUpOldLogfiles();
 
 									// Initialize new file.
 									++this.fileSequenceNo;
@@ -191,6 +192,41 @@ namespace Logfile.Structured
 			finally
 			{
 				this.sync.Release();
+			}
+		}
+
+		private void cleanUpOldLogfiles()
+		{
+			var config = this.configuration;
+			if (config == null) return;
+
+			try
+			{
+				// Create map of matching files with their creation dates and sequence numbers.
+				var list = new List<(DateTime CreationDate, int SequenceNo, string FileName)>();
+				// Find files matching the file name format.
+				var fileNames = Directory.EnumerateFiles(this.configuration.Path);
+				foreach (var fileName in fileNames)
+				{
+					// TODO Parse file header.
+					try
+					{
+						using (var fileStream = File.Open(Path.Combine(this.configuration.Path, fileName), FileMode.Open, FileAccess.Read, FileShare.Read))
+						{
+							// TODO
+						}
+					}
+					catch (Exception ex)
+					{
+						// TODO Log.
+					}
+				}
+
+					// TODO Delete all files above threshold + 1 (as a new file is going to be created right now)
+			}
+			catch (Exception ex)
+			{
+				// TODO Log.
 			}
 		}
 

@@ -3,6 +3,7 @@ using Logfile.Structured.Elements;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Text;
 
 namespace Logfile.Structured.UnitTests.Elements
 {
@@ -242,6 +243,256 @@ value");
 				lines.ElementAt(9).Should().Be("e");
 				lines.ElementAt(10).Should().BeEmpty();
 				lines.ElementAt(11).Should().Be("f");
+			}
+		}
+
+		public class ParseKeyValuePair
+		{
+			static string b2s(byte[] data) => Encoding.UTF8.GetString(data);
+			static byte[] s2b(string s) => Encoding.UTF8.GetBytes(s);
+
+			[Test]
+			public void DataNull_ShouldThrow_ArgumentNullException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentNullException>(() => ContentEncoding.ParseKeyValuePair(data: null));
+			}
+
+			[Test]
+			public void UnquotedKeyOnly_ShouldReturn_KeyAndValueNull()
+			{
+				// Arrange
+				var data = s2b("my-key");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("my-key");
+				kvp.Value.Should().BeNull();
+			}
+
+			[Test]
+			public void QuotedKeyOnly_ShouldReturn_KeyAndValueNull()
+			{
+				// Arrange
+				var data = s2b("`my-key`");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("my-key");
+				kvp.Value.Should().BeNull();
+			}
+
+			[Test]
+			public void UnquotedKeyWithWhiteSpaces_ShouldReturn_KeyAndValueNull()
+			{
+				// Arrange
+				var data = s2b("my key");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("my key");
+				kvp.Value.Should().BeNull();
+			}
+
+			[Test]
+			public void UnquotedKeyWithLeadingAndTrailingWhiteSpaces_ShouldReturn_TrimmedKeyAndValueNull()
+			{
+				// Arrange
+				var data = s2b("\t \nmy key\t \n");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("my key");
+				kvp.Value.Should().BeNull();
+			}
+
+			[Test]
+			public void QuotedKeyWithWhiteSpaces_ShouldReturn_NonTrimmedKeyAndValueNull()
+			{
+				// Arrange
+				var data = s2b("`\t\n my key\t\n `");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("\t\n my key\t\n ");
+				kvp.Value.Should().BeNull();
+			}
+
+			[Test]
+			public void QuotedKeyAndQuotedValue_ShouldReturn_KeyAndValue()
+			{
+				// Arrange
+				var data = s2b("`key`=`value`");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("key");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void UnquotedKeyAndUnquotedValue_ShouldReturn_KeyAndValue()
+			{
+				// Arrange
+				var data = s2b("key=value");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("key");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void QuotedKeyAndQuotedValueWithWhiteSpacesInBetweenTheQuotationSignsAndTheAssignmentSign_ShouldReturn_KeyAndValue()
+			{
+				// Arrange
+				var data = s2b("`key`\t\n =\t\n `value`");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("key");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void UnquotedKeyAndQuotedValue_ShouldReturn_KeyAndValue()
+			{
+				// Arrange
+				var data = s2b("key=`value`");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("key");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void QuotedKeyAndUnquotedValue_ShouldReturn_KeyAndValue()
+			{
+				// Arrange
+				var data = s2b("`key`=value");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("key");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void EmptyKeyAndUnquotedValue_ShouldReturn_KeyEmptyAndValue()
+			{
+				// Arrange
+				var data = s2b("=value");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void KeyEmptyAndQuotedValue_ShouldReturn_KeyEmptyAndValue()
+			{
+				// Arrange
+				var data = s2b("=`value`");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void KeyEmptyAndValueEmpty_ShouldReturn_KeyEmptyAndValueEmpty()
+			{
+				// Arrange
+				var data = s2b("=");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("");
+				b2s(kvp.Value).Should().Be("");
+			}
+
+			[Test]
+			public void QuotedKeyEmptyAndQuotedValueEmpty_ShouldReturn_KeyEmptyAndValueEmpty()
+			{
+				// Arrange
+				var data = s2b("``=``");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("");
+				b2s(kvp.Value).Should().Be("");
+			}
+
+			[Test]
+			public void NonWhiteSpaceCharactersBeforeQuotedKeyOnly_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var data = s2b("abc`key`");
+
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
+			}
+
+			[Test]
+			public void NonWhiteSpaceCharactersAfterQuotedKeyOnly_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var data = s2b("`key`abc");
+
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
+			}
+
+			[Test]
+			public void NonWhiteSpaceCharactersBeforeQuotedValueOnly_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var data = s2b("`key`=abc`value`");
+
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
+			}
+
+			[Test]
+			public void NonWhiteSpaceCharactersAfterQuotedValueOnly_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var data = s2b("`key`=`value`abc");
+
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
 			}
 		}
 	}
