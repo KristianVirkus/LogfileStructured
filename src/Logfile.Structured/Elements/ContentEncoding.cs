@@ -117,32 +117,32 @@ namespace Logfile.Structured.Elements
 			data = TrimData(data: data, charactersToTrim: charactersToTrim);
 
 			// Find quotation signs.
-			var quotationSignIndexes = findIndexes(data: data, b: (byte)Constants.QuotationSign);
-			if (quotationSignIndexes.Length != 0 && quotationSignIndexes.Length != 2 && quotationSignIndexes.Length != 4)
+			var QuotationMarkIndexes = findIndexes(data: data, b: (byte)Constants.QuotationMark);
+			if (QuotationMarkIndexes.Length != 0 && QuotationMarkIndexes.Length != 2 && QuotationMarkIndexes.Length != 4)
 				throw new FormatException("Invalid quotation pattern for key-value-pair.");
 
 			// Find assignment sign depending on whether the key is in quotation signs or not.
-			int assignmentSignIndex = -1;
-			if (data[0] == Constants.QuotationSign)
-				assignmentSignIndex = Array.FindIndex(data, quotationSignIndexes[1] + 1, b => b == Constants.AssignmentSign);
+			int AssignmentCharacterIndex = -1;
+			if (data[0] == Constants.QuotationMark)
+				AssignmentCharacterIndex = Array.FindIndex(data, QuotationMarkIndexes[1] + 1, b => b == Constants.AssignmentCharacter);
 			else
-				assignmentSignIndex = Array.FindIndex(data, b => b == Constants.AssignmentSign);
+				AssignmentCharacterIndex = Array.FindIndex(data, b => b == Constants.AssignmentCharacter);
 
-			var hasValue = assignmentSignIndex != -1;
-			var keyQuoted = data[0] == Constants.QuotationSign;
-			var valueQuoted = hasValue && data[data.Length - 1] == Constants.QuotationSign
-								&& ((quotationSignIndexes.Length == 2 && !keyQuoted)
-									|| quotationSignIndexes.Length == 4);
+			var hasValue = AssignmentCharacterIndex != -1;
+			var keyQuoted = data[0] == Constants.QuotationMark;
+			var valueQuoted = hasValue && data[data.Length - 1] == Constants.QuotationMark
+								&& ((QuotationMarkIndexes.Length == 2 && !keyQuoted)
+									|| QuotationMarkIndexes.Length == 4);
 
 			if (keyQuoted && !valueQuoted && !hasValue
-				&& (data[0] != Constants.QuotationSign || data[data.Length - 1] != Constants.QuotationSign))
+				&& (data[0] != Constants.QuotationMark || data[data.Length - 1] != Constants.QuotationMark))
 			{
 				throw new FormatException("Invalid quotation pattern for key-value-pair.");
 			}
 
-			if ((!keyQuoted && !valueQuoted && quotationSignIndexes.Length != 0)
-				|| (keyQuoted ^ valueQuoted && quotationSignIndexes.Length != 2)
-				|| (keyQuoted && valueQuoted && quotationSignIndexes.Length != 4))
+			if ((!keyQuoted && !valueQuoted && QuotationMarkIndexes.Length != 0)
+				|| (keyQuoted ^ valueQuoted && QuotationMarkIndexes.Length != 2)
+				|| (keyQuoted && valueQuoted && QuotationMarkIndexes.Length != 4))
 			{
 				throw new FormatException("Invalid quotation pattern for key-value-pair.");
 			}
@@ -150,8 +150,8 @@ namespace Logfile.Structured.Elements
 			// Test that between `key` and = is nothing but white spaces.
 			if (keyQuoted && hasValue)
 			{
-				var space = new byte[assignmentSignIndex - quotationSignIndexes[1] - 1];
-				Array.Copy(data, quotationSignIndexes[1] + 1, space, 0, space.Length);
+				var space = new byte[AssignmentCharacterIndex - QuotationMarkIndexes[1] - 1];
+				Array.Copy(data, QuotationMarkIndexes[1] + 1, space, 0, space.Length);
 				for (int i = 0; i < space.Length; i++)
 					if (!Char.IsWhiteSpace((char)space[i]))
 						throw new FormatException("Non-white-space characters are disallowed between quotation and assignment characters.");
@@ -160,8 +160,8 @@ namespace Logfile.Structured.Elements
 			// Test that between = and `value` is nothing but white spaces.
 			if (valueQuoted && hasValue)
 			{
-				var space = new byte[quotationSignIndexes[keyQuoted ? 2 : 0] - assignmentSignIndex - 1];
-				Array.Copy(data, assignmentSignIndex + 1, space, 0, space.Length);
+				var space = new byte[QuotationMarkIndexes[keyQuoted ? 2 : 0] - AssignmentCharacterIndex - 1];
+				Array.Copy(data, AssignmentCharacterIndex + 1, space, 0, space.Length);
 				for (int i = 0; i < space.Length; i++)
 					if (!Char.IsWhiteSpace((char)space[i]))
 						throw new FormatException("Non-white-space characters are disallowed between quotation and assignment characters.");
@@ -171,10 +171,10 @@ namespace Logfile.Structured.Elements
 			byte[] key;
 			var keyFromIndex = keyQuoted ? 1 : 0;
 			var keyToIndex = keyQuoted
-								? quotationSignIndexes[1] - 1
-								: (assignmentSignIndex == -1
+								? QuotationMarkIndexes[1] - 1
+								: (AssignmentCharacterIndex == -1
 									? data.Length - 1
-									: assignmentSignIndex - 1);
+									: AssignmentCharacterIndex - 1);
 
 			byte[] value = null;
 			var valueFromIndex = -1;
@@ -186,20 +186,20 @@ namespace Logfile.Structured.Elements
 					if (keyQuoted)
 					{
 						// Value is within quotation signs: `abc`=`def`
-						valueFromIndex = quotationSignIndexes[2] + 1;
-						valueToIndex = quotationSignIndexes[3] - 1;
+						valueFromIndex = QuotationMarkIndexes[2] + 1;
+						valueToIndex = QuotationMarkIndexes[3] - 1;
 					}
 					else
 					{
 						// Value is within quotation signs: abc=`def`
-						valueFromIndex = quotationSignIndexes[0] + 1;
-						valueToIndex = quotationSignIndexes[1] - 1;
+						valueFromIndex = QuotationMarkIndexes[0] + 1;
+						valueToIndex = QuotationMarkIndexes[1] - 1;
 					}
 				}
 				else
 				{
 					// Value is not within quotation signs: abc=def | `abc`=def
-					valueFromIndex = assignmentSignIndex + 1;
+					valueFromIndex = AssignmentCharacterIndex + 1;
 					valueToIndex = data.Length - 1;
 				}
 			}

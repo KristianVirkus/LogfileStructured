@@ -36,12 +36,12 @@ namespace Logfile.Structured
 		/// <summary>
 		/// Gets the character for quoting values.
 		/// </summary>
-		public const char QuotationSign = '`';
+		public const char QuotationMark = '`';
 
 		/// <summary>
 		/// Gets the character for assigning values.
 		/// </summary>
-		public const char AssignmentSign = '=';
+		public const char AssignmentCharacter = '=';
 
 		/// <summary>
 		/// Gets the character to introduce new lines.

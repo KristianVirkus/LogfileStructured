@@ -372,7 +372,7 @@ value");
 			}
 
 			[Test]
-			public void QuotedKeyAndQuotedValueWithWhiteSpacesInBetweenTheQuotationSignsAndTheAssignmentSign_ShouldReturn_KeyAndValue()
+			public void QuotedKeyAndQuotedValueWithWhiteSpacesInBetweenTheQuotationMarksAndTheAssignmentCharacter_ShouldReturn_KeyAndValue()
 			{
 				// Arrange
 				var data = s2b("`key`\t\n =\t\n `value`");
@@ -539,7 +539,7 @@ value");
 			[TestCase("`key`=``value`")]
 			[TestCase("`ke``y`=`value`")]
 			[TestCase("`key`=`val``ue`")]
-			public void InvalidNumberOfQuotationSigns_ShouldThrow_FormatException(string s)
+			public void InvalidNumberOfQuotationMarks_ShouldThrow_FormatException(string s)
 			{
 				// Arrange
 				var data = s2b(s);

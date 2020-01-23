@@ -92,13 +92,13 @@ namespace Logfile.Structured.Elements
 			var sb = new StringBuilder();
 
 			// Add logfile identity and common meta information.
-			sb.Append($"{LogfileIdentity}{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{AppNameRecord}{Constants.AssignmentSign}{Constants.QuotationSign}{encode(this.AppName)}{Constants.QuotationSign}{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{AppStartUpTimeRecord}{Constants.AssignmentSign}{Constants.QuotationSign}{this.AppStartUpTime.ToIso8601String()}{Constants.QuotationSign}{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{AppInstanceLogfileSequenceNumberRecord}{Constants.AssignmentSign}{this.AppInstanceLogfileSequenceNumber}");
+			sb.Append($"{LogfileIdentity}{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{AppNameRecord}{Constants.AssignmentCharacter}{Constants.QuotationMark}{encode(this.AppName)}{Constants.QuotationMark}{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{AppStartUpTimeRecord}{Constants.AssignmentCharacter}{Constants.QuotationMark}{this.AppStartUpTime.ToIso8601String()}{Constants.QuotationMark}{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{AppInstanceLogfileSequenceNumberRecord}{Constants.AssignmentCharacter}{this.AppInstanceLogfileSequenceNumber}");
 
 			// Add miscellaneous meta information.
 			foreach (var kvp in this.Miscellaneous)
 			{
 				sb.Append(Constants.NewLine);
-				sb.Append($"{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}{encode(kvp.Key)}{Constants.QuotationSign}{Constants.AssignmentSign}{Constants.QuotationSign}{encode(kvp.Value)}{Constants.QuotationSign}");
+				sb.Append($"{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}{encode(kvp.Key)}{Constants.QuotationMark}{Constants.AssignmentCharacter}{Constants.QuotationMark}{encode(kvp.Value)}{Constants.QuotationMark}");
 			}
 
 			sb.Append(Constants.EntitySeparator);
@@ -112,7 +112,7 @@ namespace Logfile.Structured.Elements
 		/// <returns>The encoded text.</returns>
 		/// <exception cref="ArgumentNullException">Thrown, if
 		///		<paramref name="text"/> is null.</exception>
-		static string encode(string text) => ContentEncoding.Encode(text, new[] { (byte)Constants.QuotationSign });
+		static string encode(string text) => ContentEncoding.Encode(text, new[] { (byte)Constants.QuotationMark });
 
 		/// <summary>
 		/// Decodes a text from use within a structured logfile.

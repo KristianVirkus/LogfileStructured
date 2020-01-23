@@ -125,10 +125,10 @@ namespace Logfile.Structured.UnitTests.Elements
 				var serialized = createHeader(appStartUpTime: time, miscellaneous: miscellaneous).Serialize(configuration);
 
 				var expected = $"{Header<StandardLoglevel>.LogfileIdentity}"
-					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationSign}TestApp{Constants.QuotationSign}"
-					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationSign}{time.ToIso8601String()}{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationMark}TestApp{Constants.QuotationMark}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationMark}{time.ToIso8601String()}{Constants.QuotationMark}"
 					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
-					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key{Constants.QuotationSign}={Constants.QuotationSign}value{Constants.QuotationSign}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key{Constants.QuotationMark}={Constants.QuotationMark}value{Constants.QuotationMark}"
 					+ $"{Constants.EntitySeparator}";
 
 				serialized.Should().Be(expected);
@@ -148,11 +148,11 @@ namespace Logfile.Structured.UnitTests.Elements
 				var serialized = createHeader(appStartUpTime: time, miscellaneous: miscellaneous).Serialize(configuration);
 
 				var expected = $"{Header<StandardLoglevel>.LogfileIdentity}"
-					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationSign}TestApp{Constants.QuotationSign}"
-					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationSign}{time.ToIso8601String()}{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationMark}TestApp{Constants.QuotationMark}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationMark}{time.ToIso8601String()}{Constants.QuotationMark}"
 					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
-					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key{Constants.QuotationSign}={Constants.QuotationSign}value{Constants.QuotationSign}"
-					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key%25text{Constants.QuotationSign}={Constants.QuotationSign}value%60text{Constants.QuotationSign}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key{Constants.QuotationMark}={Constants.QuotationMark}value{Constants.QuotationMark}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key%25text{Constants.QuotationMark}={Constants.QuotationMark}value%60text{Constants.QuotationMark}"
 					+ $"{Constants.EntitySeparator}";
 
 				serialized.Should().Be(expected);
@@ -172,12 +172,12 @@ namespace Logfile.Structured.UnitTests.Elements
 				var serialized = createHeader(appStartUpTime: time, miscellaneous: miscellaneous).Serialize(configuration);
 
 				var expected = $"{Header<StandardLoglevel>.LogfileIdentity}"
-					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationSign}TestApp{Constants.QuotationSign}"
-					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationSign}{time.ToIso8601String()}{Constants.QuotationSign}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppNameRecord}={Constants.QuotationMark}TestApp{Constants.QuotationMark}"
+					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationMark}{time.ToIso8601String()}{Constants.QuotationMark}"
 					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
-					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key{Constants.QuotationSign}={Constants.QuotationSign}value{Constants.QuotationSign}"
-					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationSign}key text{Constants.QuotationSign}={Constants.QuotationSign}value"
-					+ $"\nmulti-line\ntext{Constants.QuotationSign}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key{Constants.QuotationMark}={Constants.QuotationMark}value{Constants.QuotationMark}"
+					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key text{Constants.QuotationMark}={Constants.QuotationMark}value"
+					+ $"\nmulti-line\ntext{Constants.QuotationMark}"
 					+ $"{Constants.EntitySeparator}";
 
 				serialized.Should().Be(expected);
@@ -308,7 +308,7 @@ namespace Logfile.Structured.UnitTests.Elements
 				var configuration = createConfiguration();
 
 				var header = createHeader();
-				var serialized = header.Serialize(configuration).Replace($"app={Constants.QuotationSign}{header.AppName}{Constants.QuotationSign}", "");
+				var serialized = header.Serialize(configuration).Replace($"app={Constants.QuotationMark}{header.AppName}{Constants.QuotationMark}", "");
 				var data = Encoding.UTF8.GetBytes(serialized);
 
 				// Act & Assert
