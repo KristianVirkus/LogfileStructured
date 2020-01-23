@@ -127,7 +127,6 @@ namespace Logfile.Structured.Elements
 		/// Parses a header element from <paramref name="data"/>.
 		/// </summary>
 		/// <param name="data">The data to parse. May contain additional data at the ending.</param>
-		/// <param name="encoding">The encoding to treat the data with, null to use UTF-8.</param>
 		/// <param name="timeZone">The time zone to treat untyped dates/times as. If null,
 		///		the local time zone will be used.</param>
 		/// <returns>Information on whether more data is required for successful parsing,
@@ -140,16 +139,15 @@ namespace Logfile.Structured.Elements
 		///	<exception cref="FormatException">Thrown, if
 		///		the <paramref name="data"/> cannot be parsed successfully as
 		///		header element.</exception>
-		public static (bool MoreDataRequired, int ConsumedData, IElement<TLoglevel> Element) Parse(byte[] data, Encoding encoding, TimeZoneInfo timeZone)
+		public static (bool MoreDataRequired, int ConsumedData, IElement<TLoglevel> Element) Parse(byte[] data, TimeZoneInfo timeZone)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
-			if (encoding == null) encoding = Encoding.UTF8;
-			if (timeZone == null) timeZone = TimeZoneInfo.Local;
+			timeZone = timeZone ?? TimeZoneInfo.Local;
 
 			var exceptionThrownByPurpose = false;
 			try
 			{
-				var (records, consumedData, entityComplete) = ContentEncoding.SplitRecords(data: data, offset: 0, encoding: encoding);
+				var (records, consumedData, entityComplete) = ContentEncoding.SplitRecords(data: data, offset: 0);
 				if (!entityComplete) return (MoreDataRequired: true, ConsumedData: 0, Element: null);
 
 				var record = 0;
@@ -159,23 +157,33 @@ namespace Logfile.Structured.Elements
 					throw new NotSupportedException("Incompatible element data.");
 				}
 
-				var charactersToTrim = encoding.GetBytes(Constants.IgnoredAfterRecordSeparators);
+				var charactersToTrim = ContentEncoding.Encoding.GetBytes(Constants.IgnoredAfterRecordSeparators);
 				var headerRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
+
 				var appNameRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var appNameKvp = ContentEncoding.ParseKeyValuePair(data: appNameRecord, encoding: encoding);
-				if (decode(encoding.GetString(appNameKvp.Key ?? new byte[0])) != AppNameRecord)
+				var appNameKvp = ContentEncoding.ParseKeyValuePair(data: appNameRecord);
+				if (decode(ContentEncoding.Encoding.GetString(appNameKvp.Key ?? new byte[0])) != AppNameRecord)
 					throw new FormatException("Invalid app name.");
-				var appNameText = decode(encoding.GetString(appNameKvp.Value ?? new byte[0]));
+				var appNameText = decode(ContentEncoding.Encoding.GetString(appNameKvp.Value ?? new byte[0]));
+
 				var startUpTimeRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var startUpTimeKvp = ContentEncoding.ParseKeyValuePair(data: startUpTimeRecord, encoding: encoding);
-				if (decode(encoding.GetString(startUpTimeKvp.Key ?? new byte[0])) != AppStartUpTimeRecord)
+				var startUpTimeKvp = ContentEncoding.ParseKeyValuePair(data: startUpTimeRecord);
+				if (decode(ContentEncoding.Encoding.GetString(startUpTimeKvp.Key ?? new byte[0])) != AppStartUpTimeRecord)
 					throw new FormatException("Invalid start-up time.");
-				var startUpTimeText = decode(encoding.GetString(startUpTimeKvp.Value ?? new byte[0]));
+				var startUpTimeText = decode(ContentEncoding.Encoding.GetString(startUpTimeKvp.Value ?? new byte[0]));
 				var startUpTime = DateTimeExtensions.ParseIso8601String(startUpTimeText);
 				if (startUpTime.Kind == DateTimeKind.Unspecified)
-					DateTime.SpecifyKind(startUpTime, DateTimeKind.Local);
+				{
+					startUpTime = TimeZoneInfo.ConvertTimeToUtc(startUpTime, timeZone);
+				}
+				if (startUpTime.Kind != DateTimeKind.Utc)
+					startUpTime = startUpTime.ToUniversalTime();
+
 				var sequenceNoRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var sequenceNoText = decode(encoding.GetString(ContentEncoding.ParseKeyValuePair(data: sequenceNoRecord, encoding: encoding).Value ?? new byte[0]));
+				var sequenceNoKvp = ContentEncoding.ParseKeyValuePair(data: sequenceNoRecord);
+				if (decode(ContentEncoding.Encoding.GetString(sequenceNoKvp.Key ?? new byte[0])) != AppInstanceLogfileSequenceNumberRecord)
+					throw new FormatException("Invalid sequence number.");
+				var sequenceNoText = decode(ContentEncoding.Encoding.GetString(sequenceNoKvp.Value ?? new byte[0]));
 				var sequenceNo = int.Parse(sequenceNoText);
 
 				// Read optional key-value-pairs.
@@ -183,11 +191,11 @@ namespace Logfile.Structured.Elements
 				for (int i = 4; i < records.Count(); i++)
 				{
 					var kvpBytes = ContentEncoding.TrimData(records.ElementAt(i), charactersToTrim: charactersToTrim);
-					var kvp = ContentEncoding.ParseKeyValuePair(data: kvpBytes, encoding: encoding);
-					kvps.Add((Key: decode(encoding.GetString(kvp.Key)), Value: decode(encoding.GetString(kvp.Value))));
+					var kvp = ContentEncoding.ParseKeyValuePair(data: kvpBytes);
+					kvps.Add((Key: decode(ContentEncoding.Encoding.GetString(kvp.Key)), Value: decode(ContentEncoding.Encoding.GetString(kvp.Value))));
 				}
 
-				var headerIdentityBytes = encoding.GetBytes(LogfileIdentity);
+				var headerIdentityBytes = ContentEncoding.Encoding.GetBytes(LogfileIdentity);
 				if (!headerRecord.SequenceEqual(headerIdentityBytes))
 					throw new NotSupportedException("Incompatible element data.");
 
@@ -195,8 +203,8 @@ namespace Logfile.Structured.Elements
 						ConsumedData: consumedData,
 						Element: new Header<TLoglevel>(
 							appName: appNameText,
-							appStartUpTime: DateTimeExtensions.ParseIso8601String(startUpTimeText),
-							appInstanceSequenceNumber: int.Parse(sequenceNoText),
+							appStartUpTime: startUpTime,
+							appInstanceSequenceNumber: sequenceNo,
 							miscellaneous: kvps.ToDictionary(k => k.Key, v => v.Value)));
 			}
 			catch (Exception ex) when (!exceptionThrownByPurpose)
@@ -205,17 +213,20 @@ namespace Logfile.Structured.Elements
 			}
 		}
 
-		public static (bool MoreDataRequired, bool IsCompatible) Identify(byte[] data, Encoding encoding)
+		public static (bool MoreDataRequired, bool IsCompatible) Identify(byte[] data)
 		{
-			var headerIdentityBytes = encoding.GetBytes(LogfileIdentity + Constants.RecordSeparator);
+			if (data == null) throw new ArgumentNullException(nameof(data));
+
+			var headerIdentityOnlyBytes = ContentEncoding.Encoding.GetBytes(LogfileIdentity);
+			var headerIdentityRecordBytes = ContentEncoding.Encoding.GetBytes(LogfileIdentity + Constants.RecordSeparator);
 
 			// Request more data if not enough to determine compatibility.
-			if (data.Length < headerIdentityBytes.Length)
+			if (data.Length < headerIdentityRecordBytes.Length)
 				return (MoreDataRequired: true, IsCompatible: false);
 
-			var result = ContentEncoding.SplitRecords(data: data, offset: 0, encoding: encoding);
+			var result = ContentEncoding.SplitRecords(data: data, offset: 0);
 			return (MoreDataRequired: false,
-					IsCompatible: result.Records?.Count() >= 1 && result.Records.First().SequenceEqual(headerIdentityBytes));
+					IsCompatible: result.Records?.Count() >= 1 && result.Records.First().SequenceEqual(headerIdentityOnlyBytes));
 		}
 	}
 }

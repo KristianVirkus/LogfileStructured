@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Logfile.Core;
 using Logfile.Core.Details;
+using Logfile.Structured.Elements;
 using Logfile.Structured.Formatters;
 using Moq;
 using NUnit.Framework;
@@ -8,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +38,7 @@ namespace Logfile.Structured.UnitTests
 						{ typeof(Core.Details.Message), Structured.Formatters.Message.Default },
 						// TODO { typeof(Core.Details.ExceptionDetail), Structured.Formatters.ExceptionDetail.Instance },
 					},
-					new Aes256SensitiveSettings(Encoding.UTF8.GetBytes(new string(' ', 32))),
+					new Aes256SensitiveSettings(ContentEncoding.Encoding.GetBytes(new string(' ', 32))),
 					additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : new IStreamWriter[0]),
 					false);
 			}

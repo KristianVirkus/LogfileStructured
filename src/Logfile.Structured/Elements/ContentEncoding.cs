@@ -10,6 +10,8 @@ namespace Logfile.Structured.Elements
 	/// </summary>
 	public static class ContentEncoding
 	{
+		public static readonly Encoding Encoding = Encoding.UTF8;
+
 		/// <summary>
 		/// Encodes a string to not contain any control characters or
 		/// quotation marks ("). The encoding resembles the URI encoding
@@ -102,18 +104,17 @@ namespace Logfile.Structured.Elements
 		/// Parses a record as key-value-pair.
 		/// </summary>
 		/// <param name="data">The record data, may still be beautified.</param>
-		/// <param name="encoding">The encoding to treat the data with, null to use UTF-8.</param>
 		/// <returns>The parsed key and value.</returns>
 		/// <exception cref="ArgumentNullException">Thrown, if
 		///		<paramref name="data"/> is null.</exception>
 		/// <exception cref="FormatException">Thrown, if
 		///		<paramref name="data"/> does not contain valid key-value-pair data.</exception>
-		public static (byte[] Key, byte[] Value) ParseKeyValuePair(byte[] data, Encoding encoding = null)
+		public static (byte[] Key, byte[] Value) ParseKeyValuePair(byte[] data)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 
 			// Trim data first.
-			var charactersToTrim = (encoding ?? Encoding.UTF8).GetBytes(Constants.IgnoredAfterRecordSeparators);
+			var charactersToTrim = (ContentEncoding.Encoding ?? Encoding.UTF8).GetBytes(Constants.IgnoredAfterRecordSeparators);
 			data = TrimData(data: data, charactersToTrim: charactersToTrim);
 
 			// Find quotation signs.
@@ -153,7 +154,7 @@ namespace Logfile.Structured.Elements
 				var space = new byte[AssignmentCharacterIndex - QuotationMarkIndexes[1] - 1];
 				Array.Copy(data, QuotationMarkIndexes[1] + 1, space, 0, space.Length);
 				for (int i = 0; i < space.Length; i++)
-					if (!Char.IsWhiteSpace((char)space[i]))
+					if (!charactersToTrim.Contains(space[i]))
 						throw new FormatException("Non-white-space characters are disallowed between quotation and assignment characters.");
 			}
 
@@ -163,8 +164,10 @@ namespace Logfile.Structured.Elements
 				var space = new byte[QuotationMarkIndexes[keyQuoted ? 2 : 0] - AssignmentCharacterIndex - 1];
 				Array.Copy(data, AssignmentCharacterIndex + 1, space, 0, space.Length);
 				for (int i = 0; i < space.Length; i++)
-					if (!Char.IsWhiteSpace((char)space[i]))
+				{
+					if (!charactersToTrim.Contains(space[i]))
 						throw new FormatException("Non-white-space characters are disallowed between quotation and assignment characters.");
+				}
 			}
 
 			// Get key.
@@ -208,7 +211,7 @@ namespace Logfile.Structured.Elements
 			if (!keyQuoted)
 			{
 				// Decrease index to until no more whitespaces.
-				while (keyToIndex > 0 && char.IsWhiteSpace((char)data[keyToIndex]))
+				while (keyToIndex > 0 && charactersToTrim.Contains(data[keyToIndex]))
 					keyToIndex--;
 			}
 
@@ -216,7 +219,7 @@ namespace Logfile.Structured.Elements
 			if (!valueQuoted && hasValue)
 			{
 				// Increase index from until no more whitespaces.
-				while (valueFromIndex < data.Length && char.IsWhiteSpace((char)data[valueFromIndex]))
+				while (valueFromIndex < data.Length && charactersToTrim.Contains(data[valueFromIndex]))
 					valueFromIndex++;
 			}
 
@@ -327,22 +330,20 @@ namespace Logfile.Structured.Elements
 		/// </summary>
 		/// <param name="data">The data.</param>
 		/// <param name="offset">The offset to read from the data.</param>
-		/// <param name="encoding">The encoding to assume, or null to use UTF-8 as default.</param>
 		/// <returns>The records found, the number of data bytes consumed from
 		///		<paramref name="offset"/> and whether the entity has been
 		///		read completely (false) or lacks more data (false.)</returns>
-		public static (IEnumerable<byte[]> Records, int ConsumedData, bool EntityComplete) SplitRecords(byte[] data, int offset = 0, Encoding encoding = null)
+		public static (IEnumerable<byte[]> Records, int ConsumedData, bool EntityComplete) SplitRecords(byte[] data, int offset = 0)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			if (offset < 0 || offset >= data.Length)
 				throw new ArgumentOutOfRangeException("Offset out of bounds.", nameof(offset));
-			encoding = encoding ?? Encoding.UTF8;
 
 			var initialOffset = offset;
 			var records = new List<byte[]>();
 
-			var entitySeparatorBytes = encoding.GetBytes(Constants.EntitySeparator);
-			var recordSeparatorBytes = encoding.GetBytes(Constants.RecordSeparator);
+			var entitySeparatorBytes = ContentEncoding.Encoding.GetBytes(Constants.EntitySeparator);
+			var recordSeparatorBytes = ContentEncoding.Encoding.GetBytes(Constants.RecordSeparator);
 			var minSeparatorLength = Math.Min(entitySeparatorBytes.Length, recordSeparatorBytes.Length);
 			var lastSeparatorOffset = offset - 1;
 

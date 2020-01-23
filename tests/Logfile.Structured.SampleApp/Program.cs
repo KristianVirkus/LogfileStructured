@@ -1,5 +1,4 @@
-﻿using EventRouter.Core;
-using Logfile.Core;
+﻿using Logfile.Core;
 using Logfile.Core.Details;
 using System;
 using System.Linq;

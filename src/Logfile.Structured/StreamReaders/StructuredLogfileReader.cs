@@ -37,17 +37,15 @@ namespace Logfile.Structured.StreamReaders
 		/// Initializes a new instance of the <see cref="StructuredLogfileReader"/> class.
 		/// </summary>
 		/// <param name="stream">The input stream.</param>
-		/// <param name="encoding">The encoding to read the stream data with. UTF-8 if null.</param>
 		/// <exception cref="ArgumentNullException">Thrown, if
 		///		<paramref name="stream"/> is null.</exception>
 		///	<exception cref="ArgumentException">Thrown, if the
 		///		<paramref name="stream"/> is not readable.</exception>
-		public StructuredLogfileReader(Stream stream, Encoding encoding = null)
+		public StructuredLogfileReader(Stream stream)
 		{
 			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
 			if (!stream.CanRead) throw new ArgumentException("Stream is not readable.");
 
-			this.encoding = encoding ?? Encoding.UTF8;
 			this.HeaderIdentityLength = this.encoding.GetBytes(Header<TLoglevel>.LogfileIdentity).Length;
 		}
 
@@ -87,7 +85,7 @@ namespace Logfile.Structured.StreamReaders
 				if (!wasHeaderRead)
 				{
 					// Header expected first.
-					var (moreDataRequired, isCompatible) = Header<TLoglevel>.Identify(data: this.buffer, encoding: encoding);
+					var (moreDataRequired, isCompatible) = Header<TLoglevel>.Identify(data: this.buffer);
 					if (!moreDataRequired)
 					{
 						if (!isCompatible)
