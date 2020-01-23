@@ -548,5 +548,177 @@ value");
 				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
 			}
 		}
+
+		public class SplittingRecords
+		{
+			[Test]
+			public void DataNull_ShouldThrow_ArgumentNullException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentNullException>(
+					() => ContentEncoding.SplitRecords(data: null, offset: 0, encoding: null));
+			}
+
+			[Test]
+			public void OffsetNegative_ShouldThrow_ArgumentOutOfRangeException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentOutOfRangeException>(
+					() => ContentEncoding.SplitRecords(data: new byte[0], offset: -1, encoding: null));
+			}
+
+			[Test]
+			public void OffsetBeyondEndOfData_ShouldThrow_ArgumentOutOfRangeException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentOutOfRangeException>(
+					() => ContentEncoding.SplitRecords(data: new byte[0], offset: 0, encoding: null));
+				Assert.Throws<ArgumentOutOfRangeException>(
+					() => ContentEncoding.SplitRecords(data: new byte[1], offset: 1, encoding: null));
+			}
+
+			[Test]
+			public void SplitSingleRecordWithoutSeparators_Should_ReportNoRecordsAllBytesConsumedAndIncomplete()
+			{
+				// Arrange
+				var data = Encoding.UTF8.GetBytes("incomplete");
+
+				// Act
+				var result = ContentEncoding.SplitRecords(
+					data: data,
+					offset: 0,
+					encoding: null);
+
+				// Assert
+				result.Records.Any().Should().BeFalse();
+				result.ConsumedData.Should().Be("incomplete".Length);
+				result.EntityComplete.Should().BeFalse();
+			}
+
+			[Test]
+			public void SplitSingleRecordWithOnlyEntitySeparator_Should_ReportSingleRecordAndAllDataConsumedAndComplete()
+			{
+				// Arrange
+				var data = Encoding.UTF8.GetBytes("test" + Constants.EntitySeparator);
+
+				// Act
+				var result = ContentEncoding.SplitRecords(
+					data: data,
+					offset: 0,
+					encoding: null);
+
+				// Assert
+				Encoding.UTF8.GetString(result.Records.Single()).Should().Be("test");
+				result.ConsumedData.Should().Be(("test" + Constants.EntitySeparator).Length);
+				result.EntityComplete.Should().BeTrue();
+			}
+
+			[Test]
+			public void SingleRecordWithRecordSeparator_Should_ReportSingleRecordAllDataConsumedAndIncomplete()
+			{
+				// Arrange
+				var data = Encoding.UTF8.GetBytes("test" + Constants.RecordSeparator);
+
+				// Act
+				var result = ContentEncoding.SplitRecords(
+					data: data,
+					offset: 0,
+					encoding: null);
+
+				// Assert
+				Encoding.UTF8.GetString(result.Records.Single()).Should().Be("test");
+				result.ConsumedData.Should().Be(("test" + Constants.RecordSeparator).Length);
+				result.EntityComplete.Should().BeFalse();
+			}
+
+			[Test]
+			public void RandomOffsetToCompleteEntity_Should_ReportSingleRecordAndRealDataConsumedAndComplete()
+			{
+				// Arrange
+				var data = Encoding.UTF8.GetBytes("abc" + Constants.EntitySeparator + "test" + Constants.EntitySeparator);
+
+				// Act
+				var result = ContentEncoding.SplitRecords(
+					data: data,
+					offset: ("abc" + Constants.EntitySeparator).Length,
+					encoding: null);
+
+				// Assert
+				Encoding.UTF8.GetString(result.Records.Single()).Should().Be("test");
+				result.ConsumedData.Should().Be("test".Length + Constants.EntitySeparator.Length);
+				result.EntityComplete.Should().BeTrue();
+			}
+
+			[Test]
+			public void SplitMultipleEntities_Should_ReportFirstEntityRecordsOnlyAndRealDataConsumedAndComplete()
+			{
+				// Arrange
+				var data = Encoding.UTF8.GetBytes("test" + Constants.RecordSeparator + "test2" + Constants.EntitySeparator + "abc" + Constants.EntitySeparator);
+
+				// Act
+				var result = ContentEncoding.SplitRecords(
+					data: data,
+					offset: 0,
+					encoding: null);
+
+				// Assert
+				Encoding.UTF8.GetString(result.Records.First()).Should().Be("test");
+				Encoding.UTF8.GetString(result.Records.Last()).Should().Be("test2");
+				result.ConsumedData.Should().Be(("test" + Constants.RecordSeparator + "test2" + Constants.EntitySeparator).Length);
+				result.EntityComplete.Should().BeTrue();
+			}
+		}
+
+		public class TrimmingData
+		{
+			[Test]
+			public void DataNull_ShouldThrow_ArgumentNullException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentNullException>(
+					() => ContentEncoding.TrimData(data: null, charactersToTrim: new[] { (byte)' ' }));
+			}
+
+			[Test]
+			public void CharactersToTrimNull_ShouldThrow_ArgumentNullException()
+			{
+				// Arrange
+				// Act & Assert
+				Assert.Throws<ArgumentNullException>(
+					() => ContentEncoding.TrimData(data: Encoding.UTF8.GetBytes("test"), charactersToTrim: null));
+			}
+
+			[Test]
+			public void SingleCharacterToTrim_Should_RemoveChosenCharactersAtBeginningAndEnd()
+			{
+				// Arrange
+				var charactersToTrim = new[] { (byte)'\n' };
+				var data = Encoding.UTF8.GetBytes("\n test abc \n");
+
+				// Act
+				var trimmedData = ContentEncoding.TrimData(data: data, charactersToTrim: charactersToTrim);
+
+				// Assert
+				trimmedData.SequenceEqual(Encoding.UTF8.GetBytes(" test abc ")).Should().BeTrue();
+			}
+
+			[Test]
+			public void MultipleCharactersToTrim_Should_RemoveChosenCharactersAtBeginningAndEnd()
+			{
+				// Arrange
+				var charactersToTrim = new[] { (byte)'\n', (byte)' ' };
+				var data = Encoding.UTF8.GetBytes("\n test abc \n");
+
+				// Act
+				var trimmedData = ContentEncoding.TrimData(data: data, charactersToTrim: charactersToTrim);
+
+				// Assert
+				trimmedData.SequenceEqual(Encoding.UTF8.GetBytes("test abc")).Should().BeTrue();
+			}
+		}
 	}
 }

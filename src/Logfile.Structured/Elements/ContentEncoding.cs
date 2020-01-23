@@ -274,6 +274,9 @@ namespace Logfile.Structured.Elements
 		/// <returns>The unbeautified data.</returns>
 		public static byte[] TrimData(byte[] data, byte[] charactersToTrim)
 		{
+			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (charactersToTrim == null) throw new ArgumentNullException(nameof(charactersToTrim));
+
 			int firstByte = -1;
 			int lastByte = data.Length;
 
@@ -317,6 +320,72 @@ namespace Logfile.Structured.Elements
 			var temp = new byte[lastByte - firstByte + 1];
 			Array.Copy(data, firstByte, temp, 0, temp.Length);
 			return temp;
+		}
+
+		/// <summary>
+		/// Splits a whole bunch of data into separate records.
+		/// </summary>
+		/// <param name="data">The data.</param>
+		/// <param name="offset">The offset to read from the data.</param>
+		/// <param name="encoding">The encoding to assume, or null to use UTF-8 as default.</param>
+		/// <returns>The records found, the number of data bytes consumed from
+		///		<paramref name="offset"/> and whether the entity has been
+		///		read completely (false) or lacks more data (false.)</returns>
+		public static (IEnumerable<byte[]> Records, int ConsumedData, bool EntityComplete) SplitRecords(byte[] data, int offset = 0, Encoding encoding = null)
+		{
+			if (data == null) throw new ArgumentNullException(nameof(data));
+			if (offset < 0 || offset >= data.Length)
+				throw new ArgumentOutOfRangeException("Offset out of bounds.", nameof(offset));
+			encoding = encoding ?? Encoding.UTF8;
+
+			var initialOffset = offset;
+			var records = new List<byte[]>();
+
+			var entitySeparatorBytes = encoding.GetBytes(Constants.EntitySeparator);
+			var recordSeparatorBytes = encoding.GetBytes(Constants.RecordSeparator);
+			var minSeparatorLength = Math.Min(entitySeparatorBytes.Length, recordSeparatorBytes.Length);
+			var lastSeparatorOffset = offset - 1;
+
+			byte[] temp;
+			while (offset <= data.Length - minSeparatorLength)
+			{
+				if (offset <= data.Length - entitySeparatorBytes.Length)
+				{
+					// Can be entity separator.
+					temp = new byte[entitySeparatorBytes.Length];
+					Array.Copy(data, offset, temp, 0, entitySeparatorBytes.Length);
+					if (temp.SequenceEqual(entitySeparatorBytes))
+					{
+						temp = new byte[offset - lastSeparatorOffset - 1];
+						Array.Copy(data, lastSeparatorOffset + 1, temp, 0, temp.Length);
+						records.Add(temp);
+						offset += entitySeparatorBytes.Length - 1; // One byte would be added at the end of the loop.
+						lastSeparatorOffset = offset; // End of separator bytes required as index.
+
+						// Any entity separator will terminate splitting.
+						return (Records: records, ConsumedData: offset - initialOffset + 1, EntityComplete: true);
+					}
+				}
+
+				if (offset <= data.Length - recordSeparatorBytes.Length)
+				{
+					// Can be record separator.
+					temp = new byte[recordSeparatorBytes.Length];
+					Array.Copy(data, offset, temp, 0, recordSeparatorBytes.Length);
+					if (temp.SequenceEqual(recordSeparatorBytes))
+					{
+						temp = new byte[offset - lastSeparatorOffset - 1];
+						Array.Copy(data, lastSeparatorOffset + 1, temp, 0, temp.Length);
+						records.Add(temp);
+						offset += recordSeparatorBytes.Length - 1; // One byte will be added at the end of the loop.
+						lastSeparatorOffset = offset; // End of separator bytes required as index.
+					}
+				}
+
+				++offset;
+			}
+
+			return (Records: records, ConsumedData: offset - initialOffset, EntityComplete: false);
 		}
 	}
 }

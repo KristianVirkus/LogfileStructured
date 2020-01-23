@@ -149,7 +149,7 @@ namespace Logfile.Structured.Elements
 			var exceptionThrownByPurpose = false;
 			try
 			{
-				var (records, consumedData, entityComplete) = SplitRecords(data: data, offset: 0, encoding: encoding);
+				var (records, consumedData, entityComplete) = ContentEncoding.SplitRecords(data: data, offset: 0, encoding: encoding);
 				if (!entityComplete) return (MoreDataRequired: true, ConsumedData: 0, Element: null);
 
 				var record = 0;
@@ -205,67 +205,6 @@ namespace Logfile.Structured.Elements
 			}
 		}
 
-		/// <summary>
-		/// Splits a whole bunch of data into separate records.
-		/// </summary>
-		/// <param name="data">The data.</param>
-		/// <param name="offset">The offset to read from the data.</param>
-		/// <param name="encoding">The encoding to assume.</param>
-		/// <returns>The records found, the number of data bytes consumed from
-		///		<paramref name="offset"/> and whether the entity has been
-		///		read completely (false) or lacks more data (false.)</returns>
-		static (IEnumerable<byte[]> Records, int ConsumedData, bool EntityComplete) SplitRecords(byte[] data, int offset, Encoding encoding)
-		{
-			var initialOffset = offset;
-			var records = new List<byte[]>();
-
-			var entitySeparatorBytes = encoding.GetBytes(Constants.EntitySeparator);
-			var recordSeparatorBytes = encoding.GetBytes(Constants.RecordSeparator);
-			var minSeparatorLength = Math.Min(entitySeparatorBytes.Length, recordSeparatorBytes.Length);
-			var lastSeparatorOffset = -1;
-
-			byte[] temp;
-			while (offset <= data.Length - minSeparatorLength)
-			{
-				if (offset <= data.Length - entitySeparatorBytes.Length)
-				{
-					// Can be entity separator.
-					temp = new byte[entitySeparatorBytes.Length];
-					Array.Copy(data, offset, temp, 0, entitySeparatorBytes.Length);
-					if (temp.SequenceEqual(entitySeparatorBytes))
-					{
-						temp = new byte[offset - lastSeparatorOffset - 1];
-						Array.Copy(data, lastSeparatorOffset + 1, temp, 0, temp.Length);
-						records.Add(temp);
-						offset += entitySeparatorBytes.Length - 1; // One byte would be added at the end of the loop.
-						lastSeparatorOffset = offset; // End of separator bytes required as index.
-
-						// Any entity separator will terminate splitting.
-						return (Records: records, ConsumedData: offset - initialOffset + 1, EntityComplete: true);
-					}
-				}
-
-				if (offset <= data.Length - recordSeparatorBytes.Length)
-				{
-					// Can be record separator.
-					temp = new byte[recordSeparatorBytes.Length];
-					Array.Copy(data, offset, temp, 0, recordSeparatorBytes.Length);
-					if (temp.SequenceEqual(recordSeparatorBytes))
-					{
-						temp = new byte[offset - lastSeparatorOffset - 1];
-						Array.Copy(data, lastSeparatorOffset + 1, temp, 0, temp.Length);
-						records.Add(temp);
-						offset += recordSeparatorBytes.Length - 1; // One byte will be added at the end of the loop.
-						lastSeparatorOffset = offset; // End of separator bytes required as index.
-					}
-				}
-
-				++offset;
-			}
-
-			return (Records: records, ConsumedData: offset - initialOffset, EntityComplete: false);
-		}
-
 		public static (bool MoreDataRequired, bool IsCompatible) Identify(byte[] data, Encoding encoding)
 		{
 			var headerIdentityBytes = encoding.GetBytes(LogfileIdentity + Constants.RecordSeparator);
@@ -274,9 +213,9 @@ namespace Logfile.Structured.Elements
 			if (data.Length < headerIdentityBytes.Length)
 				return (MoreDataRequired: true, IsCompatible: false);
 
-			var (records, _, _) = SplitRecords(data: data, offset: 0, encoding: encoding);
+			var result = ContentEncoding.SplitRecords(data: data, offset: 0, encoding: encoding);
 			return (MoreDataRequired: false,
-					IsCompatible: records?.Count() >= 1 && records.First().SequenceEqual(headerIdentityBytes));
+					IsCompatible: result.Records?.Count() >= 1 && result.Records.First().SequenceEqual(headerIdentityBytes));
 		}
 	}
 }
