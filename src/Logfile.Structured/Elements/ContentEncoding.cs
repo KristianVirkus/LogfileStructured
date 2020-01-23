@@ -102,14 +102,19 @@ namespace Logfile.Structured.Elements
 		/// Parses a record as key-value-pair.
 		/// </summary>
 		/// <param name="data">The record data, may still be beautified.</param>
+		/// <param name="encoding">The encoding to treat the data with, null to use UTF-8.</param>
 		/// <returns>The parsed key and value.</returns>
 		/// <exception cref="ArgumentNullException">Thrown, if
 		///		<paramref name="data"/> is null.</exception>
 		/// <exception cref="FormatException">Thrown, if
 		///		<paramref name="data"/> does not contain valid key-value-pair data.</exception>
-		public static (byte[] Key, byte[] Value) ParseKeyValuePair(byte[] data)
+		public static (byte[] Key, byte[] Value) ParseKeyValuePair(byte[] data, Encoding encoding = null)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
+
+			// Trim data first.
+			var charactersToTrim = (encoding ?? Encoding.UTF8).GetBytes(Constants.IgnoredAfterRecordSeparators);
+			data = TrimData(data: data, charactersToTrim: charactersToTrim);
 
 			// Find quotation signs.
 			var quotationSignIndexes = findIndexes(data: data, b: (byte)Constants.QuotationSign);
@@ -123,10 +128,11 @@ namespace Logfile.Structured.Elements
 			else
 				assignmentSignIndex = Array.FindIndex(data, b => b == Constants.AssignmentSign);
 
-			var keyQuoted = data[0] == Constants.QuotationSign;
-			var valueQuoted = (quotationSignIndexes.Length == 2 && !keyQuoted)
-								|| quotationSignIndexes.Length == 4;
 			var hasValue = assignmentSignIndex != -1;
+			var keyQuoted = data[0] == Constants.QuotationSign;
+			var valueQuoted = hasValue && data[data.Length - 1] == Constants.QuotationSign
+								&& ((quotationSignIndexes.Length == 2 && !keyQuoted)
+									|| quotationSignIndexes.Length == 4);
 
 			if (keyQuoted && !valueQuoted && !hasValue
 				&& (data[0] != Constants.QuotationSign || data[data.Length - 1] != Constants.QuotationSign))
@@ -135,7 +141,8 @@ namespace Logfile.Structured.Elements
 			}
 
 			if ((!keyQuoted && !valueQuoted && quotationSignIndexes.Length != 0)
-				|| (keyQuoted ^ valueQuoted && quotationSignIndexes.Length != 2))
+				|| (keyQuoted ^ valueQuoted && quotationSignIndexes.Length != 2)
+				|| (keyQuoted && valueQuoted && quotationSignIndexes.Length != 4))
 			{
 				throw new FormatException("Invalid quotation pattern for key-value-pair.");
 			}
@@ -174,50 +181,43 @@ namespace Logfile.Structured.Elements
 			var valueToIndex = -1;
 			if (hasValue)
 			{
-				if (!keyQuoted && valueQuoted)
+				if (valueQuoted)
 				{
-					// Value is within quotation signs: abc=`def`
-					valueFromIndex = quotationSignIndexes[0] + 1;
-					valueToIndex = quotationSignIndexes[1] - 1;
+					if (keyQuoted)
+					{
+						// Value is within quotation signs: `abc`=`def`
+						valueFromIndex = quotationSignIndexes[2] + 1;
+						valueToIndex = quotationSignIndexes[3] - 1;
+					}
+					else
+					{
+						// Value is within quotation signs: abc=`def`
+						valueFromIndex = quotationSignIndexes[0] + 1;
+						valueToIndex = quotationSignIndexes[1] - 1;
+					}
 				}
-				else if (keyQuoted && valueQuoted)
-				{
-					// Value is within quotation signs: `abc`=`def`
-					valueFromIndex = quotationSignIndexes[2] + 1;
-					valueToIndex = quotationSignIndexes[3] - 1;
-				}
-				else if (!valueQuoted)
+				else
 				{
 					// Value is not within quotation signs: abc=def | `abc`=def
 					valueFromIndex = assignmentSignIndex + 1;
 					valueToIndex = data.Length - 1;
 				}
-				else
-				{
-					throw new FormatException("Invalid quotation pattern for key-value-pair.");
-				}
 			}
 
-			// Cut off whitespaces before and after unquoted keys.
+			// Cut off whitespaces after unquoted keys.
 			if (!keyQuoted)
 			{
-				// Increase index from and decrease index to until no more whitespaces.
-				while (keyFromIndex < data.Length && char.IsWhiteSpace((char)data[keyFromIndex]))
-					keyFromIndex++;
-
+				// Decrease index to until no more whitespaces.
 				while (keyToIndex > 0 && char.IsWhiteSpace((char)data[keyToIndex]))
 					keyToIndex--;
 			}
 
-			// Cut off whitespaces before and after unquoted values.
+			// Cut off whitespaces before unquoted values.
 			if (!valueQuoted && hasValue)
 			{
-				// Increase index from and decrease index to until no more whitespaces.
+				// Increase index from until no more whitespaces.
 				while (valueFromIndex < data.Length && char.IsWhiteSpace((char)data[valueFromIndex]))
 					valueFromIndex++;
-
-				while (valueToIndex > 0 && char.IsWhiteSpace((char)data[valueToIndex]))
-					valueToIndex--;
 			}
 
 			if (keyFromIndex > keyToIndex)
@@ -263,6 +263,60 @@ namespace Logfile.Structured.Elements
 			}
 
 			return indexes.ToArray();
+		}
+
+		/// <summary>
+		/// Removes unnecessary characters from <paramref name="data"/> which
+		/// are irrelevant for parsing.
+		/// </summary>
+		/// <param name="data">The data.</param>
+		/// <param name="charactersToTrim">The characters to trim at the front and the back.</param>
+		/// <returns>The unbeautified data.</returns>
+		public static byte[] TrimData(byte[] data, byte[] charactersToTrim)
+		{
+			int firstByte = -1;
+			int lastByte = data.Length;
+
+			for (int i = 0; i < data.Length; i++)
+			{
+				++firstByte;
+				var b = data[i];
+				var trim = false;
+				foreach (var v in charactersToTrim)
+				{
+					if (b == v)
+					{
+						trim = true;
+						break;
+					}
+				}
+
+				if (!trim) break;
+			}
+
+			for (int i = data.Length - 1; i >= 0; i--)
+			{
+				--lastByte;
+				var b = data[i];
+				var trim = false;
+				foreach (var v in charactersToTrim)
+				{
+					if (b == v)
+					{
+						trim = true;
+						break;
+					}
+				}
+
+				if (!trim) break;
+			}
+
+
+			if (firstByte > lastByte) return new byte[0];
+
+			var temp = new byte[lastByte - firstByte + 1];
+			Array.Copy(data, firstByte, temp, 0, temp.Length);
+			return temp;
 		}
 	}
 }

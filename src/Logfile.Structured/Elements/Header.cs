@@ -160,30 +160,30 @@ namespace Logfile.Structured.Elements
 				}
 
 				var charactersToTrim = encoding.GetBytes(Constants.IgnoredAfterRecordSeparators);
-				var headerRecord = unbeautify(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var appNameRecord = unbeautify(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var appNameKvp = ContentEncoding.ParseKeyValuePair(data: appNameRecord);
+				var headerRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
+				var appNameRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
+				var appNameKvp = ContentEncoding.ParseKeyValuePair(data: appNameRecord, encoding: encoding);
 				if (decode(encoding.GetString(appNameKvp.Key ?? new byte[0])) != AppNameRecord)
 					throw new FormatException("Invalid app name.");
 				var appNameText = decode(encoding.GetString(appNameKvp.Value ?? new byte[0]));
-				var startUpTimeRecord = unbeautify(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var startUpTimeKvp = ContentEncoding.ParseKeyValuePair(data: startUpTimeRecord);
+				var startUpTimeRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
+				var startUpTimeKvp = ContentEncoding.ParseKeyValuePair(data: startUpTimeRecord, encoding: encoding);
 				if (decode(encoding.GetString(startUpTimeKvp.Key ?? new byte[0])) != AppStartUpTimeRecord)
 					throw new FormatException("Invalid start-up time.");
 				var startUpTimeText = decode(encoding.GetString(startUpTimeKvp.Value ?? new byte[0]));
 				var startUpTime = DateTimeExtensions.ParseIso8601String(startUpTimeText);
 				if (startUpTime.Kind == DateTimeKind.Unspecified)
 					DateTime.SpecifyKind(startUpTime, DateTimeKind.Local);
-				var sequenceNoRecord = unbeautify(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
-				var sequenceNoText = decode(encoding.GetString(ContentEncoding.ParseKeyValuePair(data: sequenceNoRecord).Value ?? new byte[0]));
+				var sequenceNoRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
+				var sequenceNoText = decode(encoding.GetString(ContentEncoding.ParseKeyValuePair(data: sequenceNoRecord, encoding: encoding).Value ?? new byte[0]));
 				var sequenceNo = int.Parse(sequenceNoText);
 
 				// Read optional key-value-pairs.
 				var kvps = new List<(string Key, string Value)>();
 				for (int i = 4; i < records.Count(); i++)
 				{
-					var kvpBytes = unbeautify(records.ElementAt(i), charactersToTrim: charactersToTrim);
-					var kvp = ContentEncoding.ParseKeyValuePair(data: kvpBytes);
+					var kvpBytes = ContentEncoding.TrimData(records.ElementAt(i), charactersToTrim: charactersToTrim);
+					var kvp = ContentEncoding.ParseKeyValuePair(data: kvpBytes, encoding: encoding);
 					kvps.Add((Key: decode(encoding.GetString(kvp.Key)), Value: decode(encoding.GetString(kvp.Value))));
 				}
 
@@ -264,60 +264,6 @@ namespace Logfile.Structured.Elements
 			}
 
 			return (Records: records, ConsumedData: offset - initialOffset, EntityComplete: false);
-		}
-
-		/// <summary>
-		/// Removes unnecessary characters from <paramref name="data"/> which
-		/// are irrelevant for parsing.
-		/// </summary>
-		/// <param name="data">The data.</param>
-		/// <param name="charactersToTrim">The characters to trim at the front and the back.</param>
-		/// <returns>The unbeautified data.</returns>
-		static byte[] unbeautify(byte[] data, byte[] charactersToTrim)
-		{
-			int firstByte = -1;
-			int lastByte = data.Length;
-
-			for (int i = 0; i < data.Length; i++)
-			{
-				++firstByte;
-				var b = data[i];
-				var trim = false;
-				foreach (var v in charactersToTrim)
-				{
-					if (b == v)
-					{
-						trim = true;
-						break;
-					}
-				}
-
-				if (!trim) break;
-			}
-
-			for (int i = data.Length - 1; i >= 0; i--)
-			{
-				--lastByte;
-				var b = data[i];
-				var trim = false;
-				foreach (var v in charactersToTrim)
-				{
-					if (b == v)
-					{
-						trim = true;
-						break;
-					}
-				}
-
-				if (!trim) break;
-			}
-
-
-			if (firstByte > lastByte) return new byte[0];
-
-			var temp = new byte[lastByte - firstByte + 1];
-			Array.Copy(data, firstByte, temp, 0, temp.Length);
-			return temp;
 		}
 
 		public static (bool MoreDataRequired, bool IsCompatible) Identify(byte[] data, Encoding encoding)

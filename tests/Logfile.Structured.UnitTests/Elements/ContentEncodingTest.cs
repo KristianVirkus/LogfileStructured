@@ -358,6 +358,20 @@ value");
 			}
 
 			[Test]
+			public void UnquotedKeyAndUnquotedValueBothWithLeadingAndTrailingWhiteSpaces_ShouldReturn_TrimmedKeyAndValueNull()
+			{
+				// Arrange
+				var data = s2b("\t \nmy key\t \n=\t \nmy value\t \n");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("my key");
+				b2s(kvp.Value).Should().Be("my value");
+			}
+
+			[Test]
 			public void QuotedKeyAndQuotedValueWithWhiteSpacesInBetweenTheQuotationSignsAndTheAssignmentSign_ShouldReturn_KeyAndValue()
 			{
 				// Arrange
@@ -365,6 +379,20 @@ value");
 
 				// Act
 				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
+
+				// Assert
+				b2s(kvp.Key).Should().Be("key");
+				b2s(kvp.Value).Should().Be("value");
+			}
+
+			[Test]
+			public void QuotedKeyAndQuotedValueWithWhiteSpacesAroundKeyAndValue_ShouldReturn_KeyAndValue()
+			{
+				// Arrange
+				var data = s2b("\t\n `key`\t\n =\t\n `value`\t\n ");
+
+				// Act
+				var kvp = ContentEncoding.ParseKeyValuePair(data: data, encoding: null);
 
 				// Assert
 				b2s(kvp.Key).Should().Be("key");
@@ -400,7 +428,7 @@ value");
 			}
 
 			[Test]
-			public void EmptyKeyAndUnquotedValue_ShouldReturn_KeyEmptyAndValue()
+			public void EmptyKeyAndUnquotedValue_ShouldReturn_TreatValueAsKeyDueToTrimming()
 			{
 				// Arrange
 				var data = s2b("=value");
@@ -409,12 +437,12 @@ value");
 				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
 
 				// Assert
-				b2s(kvp.Key).Should().Be("");
-				b2s(kvp.Value).Should().Be("value");
+				b2s(kvp.Key).Should().Be("value");
+				kvp.Value.Should().BeNull();
 			}
 
 			[Test]
-			public void KeyEmptyAndQuotedValue_ShouldReturn_KeyEmptyAndValue()
+			public void KeyEmptyAndQuotedValue_ShouldReturn_TreatValueAsKeyDueToTrimming()
 			{
 				// Arrange
 				var data = s2b("=`value`");
@@ -423,8 +451,8 @@ value");
 				var kvp = ContentEncoding.ParseKeyValuePair(data: data);
 
 				// Assert
-				b2s(kvp.Key).Should().Be("");
-				b2s(kvp.Value).Should().Be("value");
+				b2s(kvp.Key).Should().Be("value");
+				kvp.Value.Should().BeNull();
 			}
 
 			[Test]
@@ -490,6 +518,31 @@ value");
 			{
 				// Arrange
 				var data = s2b("`key`=`value`abc");
+
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
+			}
+
+			[Test]
+			public void NonWhiteSpaceCharactersAfterQuotedKeyAndAssignment_ShouldThrow_FormatException()
+			{
+				// Arrange
+				var data = s2b("`key`abc=`value`");
+
+				// Act & Assert
+				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
+			}
+
+			[TestCase("`key`=`value``")]
+			[TestCase("``key`=`value`")]
+			[TestCase("`key``=`value`")]
+			[TestCase("`key`=``value`")]
+			[TestCase("`ke``y`=`value`")]
+			[TestCase("`key`=`val``ue`")]
+			public void InvalidNumberOfQuotationSigns_ShouldThrow_FormatException(string s)
+			{
+				// Arrange
+				var data = s2b(s);
 
 				// Act & Assert
 				Assert.Throws<FormatException>(() => ContentEncoding.ParseKeyValuePair(data: data));
