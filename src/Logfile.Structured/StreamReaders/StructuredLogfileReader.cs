@@ -1,9 +1,7 @@
 ﻿using Logfile.Structured.Elements;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,11 +19,8 @@ namespace Logfile.Structured.StreamReaders
 
 		#region Fields
 
-		private readonly int HeaderIdentityLength;
-
-		private readonly Encoding encoding;
 		private readonly Stream stream;
-		private byte[] buffer;
+		private byte[] buffer = new byte[0];
 		private bool wasHeaderRead = false;
 
 		#endregion
@@ -45,74 +40,115 @@ namespace Logfile.Structured.StreamReaders
 		{
 			this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
 			if (!stream.CanRead) throw new ArgumentException("Stream is not readable.");
-
-			this.HeaderIdentityLength = this.encoding.GetBytes(Header<TLoglevel>.LogfileIdentity).Length;
 		}
 
 		#endregion
 
 		#region Methods
 
+		/// <summary>
+		/// Reads the next element from the stream.
+		/// </summary>
+		/// <param name="cancellationToken">The cancellation token to cancel the execution.</param>
+		/// <returns>The read element.</returns>
+		/// <exception cref="IOException">Thrown, if failed to read from the stream.</exception>
+		/// <exception cref="InvalidOperationException">Thrown, if failed to parse the read data.</exception>
+		/// <exception cref="OperationCanceledException">Thrown, if  the
+		///		<paramref name="cancellationToken"/> was canceled.</exception>
 		public async Task<IElement<TLoglevel>> ReadNextElementAsync(CancellationToken cancellationToken)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			// Repeat reading bytes from stream until either a logfile element
-			// could be interpreted from the data or the buffer is full.
-			int readBytes = 0;
-			while (readBytes > 0)
+			try
 			{
-				var buf = new byte[SingleBufferSize];
-				readBytes = await stream.ReadAsync(
-					buffer: buf,
-					offset: 0,
-					count: Math.Min(buf.Length, MaximumBufferSize - this.buffer.Length),
-					cancellationToken: cancellationToken).ConfigureAwait(false);
-				if (readBytes == 0)
+				// Repeat reading bytes from stream until either a logfile element
+				// could be interpreted from the data or the buffer is full.
+				bool first = true;
+				int readBytes = 0;
+				while (true)
 				{
-					if (this.buffer.Length != 0)
-						throw new InvalidOperationException("Incomplete element.");
-					else
-						return null; // No more elements.
-				}
-
-				var newData = new byte[readBytes];
-				Array.Copy(buf, 0, newData, 0, readBytes);
-				this.buffer = this.buffer.Concat(newData).ToArray();
-
-				// Try to interpret data.
-				int processedData = 0;
-				if (!wasHeaderRead)
-				{
-					// Header expected first.
-					var (moreDataRequired, isCompatible) = Header<TLoglevel>.Identify(data: this.buffer);
-					if (!moreDataRequired)
+					// Only read more data if this is either not the first loop iteration
+					// (thus more data required) or there is no more data in the buffer.
+					if (!first || this.buffer.Length == 0)
 					{
-						if (!isCompatible)
-							throw new InvalidOperationException("Expected header.");
-						wasHeaderRead = true;
+						var buf = new byte[SingleBufferSize];
+						readBytes = await stream.ReadAsync(
+							buffer: buf,
+							offset: 0,
+							count: Math.Min(buf.Length, MaximumBufferSize - this.buffer.Length),
+							cancellationToken: cancellationToken).ConfigureAwait(false);
+						if (readBytes == 0)
+						{
+							if (this.buffer.Length != 0)
+								throw new InvalidOperationException("Incomplete element.");
+							else
+								return null; // No more elements.
+						}
+
+						var newData = new byte[readBytes];
+						Array.Copy(buf, 0, newData, 0, readBytes);
+						this.buffer = this.buffer.Concat(newData).ToArray();
 					}
-				}
-				else
-				{
-					// Any element expected.
-					// TODO Skip for now. This needs to be implemented at some later point.
-					return null;
-				}
+					first = false;
 
-				if (processedData > 0)
-				{
-					// Remove processed data from buffer.
-					var tempBuffer = new byte[this.buffer.Length - processedData];
-					Array.Copy(this.buffer, processedData, tempBuffer, 0, tempBuffer.Length);
-					this.buffer = tempBuffer;
-				}
+					if (this.buffer.Length >= MaximumBufferSize)
+					{
+						// Cannot be tested as this situation could only be tested if a single entity
+						// was larger than the buffer size.
+						throw new InvalidOperationException("Buffer full.");
+					}
 
-				if (this.buffer.Length == MaximumBufferSize)
-					throw new InvalidOperationException("Buffer full.");
+					// Try to interpret data.
+					int consumedData = 0;
+					IElement<TLoglevel> nextElement = null;
+					do
+					{
+						if (!wasHeaderRead)
+						{
+							// Header expected first.
+							var (moreDataRequired, isCompatible) = Header<TLoglevel>.Identify(data: this.buffer);
+							if (!moreDataRequired)
+							{
+								if (!isCompatible)
+									throw new InvalidOperationException("Expecting the header first.");
+								var result = Header<TLoglevel>.Parse(data: this.buffer);
+								if (!result.MoreDataRequired)
+								{
+									nextElement = result.Element;
+									consumedData = result.ConsumedData;
+									wasHeaderRead = true;
+								}
+								else
+								{
+									// Cannot be tested as this situtation should never occur.
+									throw new InvalidOperationException("Internal error: Parser should have been able to interpret the data but reports that more data is required.");
+								}
+							}
+						}
+						else
+						{
+							// Any element expected.
+							// TODO Skip for now. This needs to be implemented at some later point.
+							return null;
+						}
+
+						if (consumedData > 0)
+						{
+							// Remove processed data from buffer.
+							var tempBuffer = new byte[this.buffer.Length - consumedData];
+							Array.Copy(this.buffer, consumedData, tempBuffer, 0, tempBuffer.Length);
+							this.buffer = tempBuffer;
+						}
+
+						// Return next element if parsed successfully.
+						if (nextElement != null) return nextElement;
+					} while (consumedData > 0);
+				}
 			}
-
-			return null;
+			catch (Exception ex) when (!(ex is IOException) && !(ex is InvalidOperationException) && !(ex is OperationCanceledException))
+			{
+				throw new InvalidOperationException("Failed to parse the data.", ex);
+			}
 		}
 
 		#endregion

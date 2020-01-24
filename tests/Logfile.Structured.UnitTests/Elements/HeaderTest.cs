@@ -34,7 +34,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			DefaultStreamWriters = streamWriters;
 		}
 
-		static StructuredLogfileConfiguration<StandardLoglevel> createConfiguration(
+		internal static StructuredLogfileConfiguration<StandardLoglevel> CreateConfiguration(
 			string appName = "app",
 			bool writeToConsole = false,
 			bool writeToDebugConsole = false,
@@ -114,7 +114,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			[Test]
 			public void SerializeWithSimpleValues_Should_ProduceValidOutput()
 			{
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 				var time = DateTime.Now;
 				var miscellaneous = new Dictionary<string, string>
 				{
@@ -136,7 +136,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			[Test]
 			public void SerializeWithValuesToEscape_Should_ProduceEscapedOutput()
 			{
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 				var time = DateTime.Now;
 				var miscellaneous = new Dictionary<string, string>
 				{
@@ -160,7 +160,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			[Test]
 			public void SerializeWithLineBreaksInValues_Should_ProduceMultiLineOutput()
 			{
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 				var time = DateTime.Now;
 				var miscellaneous = new Dictionary<string, string>
 			{
@@ -196,7 +196,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			[Test]
 			public void ParseWithSimpleValues_Should_UseUtf8AndProduceValidOutput()
 			{
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 				var time = DateTime.Now;
 				var miscellaneous = new Dictionary<string, string>
 				{
@@ -223,7 +223,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			[Test]
 			public void ParseWithMiscellaneousKeyValueQuotationStyles_Should_ProduceValidOutput()
 			{
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 				var time = DateTime.Now;
 
 				var header = createHeader(appStartUpTime: time);
@@ -258,7 +258,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void InvalidHeaderIdentity_ShouldThrow_FormatException()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 				var time = DateTime.Now;
 
 				var header = createHeader();
@@ -277,7 +277,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void EmptyAppName_Should_Ignore()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader(appName: "");
 				var serialized = header.Serialize(configuration);
@@ -302,7 +302,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void FewerRecordsThanExpected_ShouldThrow_NotSupportedException()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader();
 				var serialized = header.Serialize(configuration).Replace($" == app={Constants.QuotationMark}{header.AppName}{Constants.QuotationMark}{Constants.RecordSeparator}", "");
@@ -319,7 +319,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void ReplacedAppNameByUnknownRecord_ShouldThrow_FormatException()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader();
 				var serialized = header.Serialize(configuration).Replace($"app=", "test=");
@@ -336,7 +336,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void ReplacedStartUpTimeByUnknownRecord_ShouldThrow_FormatException()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader();
 				var serialized = header.Serialize(configuration).Replace($"start-up=", "test=");
@@ -353,7 +353,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void ReplacedSequenceNumberByUnknownRecord_ShouldThrow_FormatException()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader();
 				var serialized = header.Serialize(configuration).Replace($"seq-no=", "test=");
@@ -370,7 +370,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void LocalStartUpTime_Should_GetConvertedToUtcIndependentOfTimeZoneArgument()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader();
 				var serialized = header.Serialize(configuration);
@@ -391,7 +391,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			public void UnspecifiedStartUpTime_Should_GetConvertedToUtcBasedOnTimeZoneArgument()
 			{
 				// Arrange
-				var configuration = createConfiguration();
+				var configuration = CreateConfiguration();
 
 				var header = createHeader();
 				var localTimeZoneOffset = TimeZoneInfo.Local.BaseUtcOffset;

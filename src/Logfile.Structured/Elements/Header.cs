@@ -139,7 +139,8 @@ namespace Logfile.Structured.Elements
 		///	<exception cref="FormatException">Thrown, if
 		///		the <paramref name="data"/> cannot be parsed successfully as
 		///		header element.</exception>
-		public static (bool MoreDataRequired, int ConsumedData, IElement<TLoglevel> Element) Parse(byte[] data, TimeZoneInfo timeZone)
+		public static (bool MoreDataRequired, int ConsumedData, IElement<TLoglevel> Element) Parse(
+			byte[] data, TimeZoneInfo timeZone = null)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			timeZone = timeZone ?? TimeZoneInfo.Local;
