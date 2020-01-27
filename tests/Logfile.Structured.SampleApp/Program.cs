@@ -41,6 +41,7 @@ namespace Logfile.Structured.SampleApp
 						.UseAppName("SampleApp")
 						.UseFileNameFormat("{app-name}-{start-up-time}-{seq-no}.s.log")
 						.UsePath("Logs")
+						.KeepLogfiles(5)
 						.UseConsole()
 						.UseDebugConsole()
 						.BeautifyConsoleOutput();

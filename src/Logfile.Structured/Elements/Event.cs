@@ -102,7 +102,8 @@ namespace Logfile.Structured.Elements
 			sb.Insert(0, $"{RecordSeparator}{(logfileHierarchy == null ? "" : $"{VisualRecordSeparator}{string.Join(".", logfileHierarchy.Hierarchy)}")}");
 			sb.Insert(0, $"{RecordSeparator}{VisualRecordSeparator}{this.LogEvent.Loglevel.ToString()}");
 			sb.Insert(0, $"{RecordSeparator} {this.LogEvent.Time.ToIso8601String()}");
-			sb.Insert(0, $"{Constants.EntitySeparator}{Identification}");
+			sb.Insert(0, $"{Identification}");
+			sb.Append(Constants.EntitySeparator);
 			return sb.ToString();
 		}
 

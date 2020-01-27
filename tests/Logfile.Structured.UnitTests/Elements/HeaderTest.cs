@@ -128,7 +128,7 @@ namespace Logfile.Structured.UnitTests.Elements
 					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppStartUpTimeRecord}={Constants.QuotationMark}{time.ToIso8601String()}{Constants.QuotationMark}"
 					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
 					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key{Constants.QuotationMark}={Constants.QuotationMark}value{Constants.QuotationMark}"
-					+ $"{Constants.EntitySeparator}";
+					+ $"{Constants.EntitySeparator}{Constants.NewLine}"; // include the \n at the end of the serialized string ("\e\n")
 
 				serialized.Should().Be(expected);
 			}
@@ -152,7 +152,7 @@ namespace Logfile.Structured.UnitTests.Elements
 					+ $"{Constants.RecordSeparator}{Constants.VisualRecordSeparator}{Header<StandardLoglevel>.AppInstanceLogfileSequenceNumberRecord}=1"
 					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key{Constants.QuotationMark}={Constants.QuotationMark}value{Constants.QuotationMark}"
 					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key%25text{Constants.QuotationMark}={Constants.QuotationMark}value%60text{Constants.QuotationMark}"
-					+ $"{Constants.EntitySeparator}";
+					+ $"{Constants.EntitySeparator}{Constants.NewLine}"; // include the \n at the end of the serialized string ("\e\n")
 
 				serialized.Should().Be(expected);
 			}
@@ -177,7 +177,7 @@ namespace Logfile.Structured.UnitTests.Elements
 					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key{Constants.QuotationMark}={Constants.QuotationMark}value{Constants.QuotationMark}"
 					+ $"{Constants.NewLine}{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}key text{Constants.QuotationMark}={Constants.QuotationMark}value"
 					+ $"\nmulti-line\ntext{Constants.QuotationMark}"
-					+ $"{Constants.EntitySeparator}";
+					+ $"{Constants.EntitySeparator}{Constants.NewLine}"; // include the \n at the end of the serialized string ("\e\n")
 
 				serialized.Should().Be(expected);
 			}
@@ -211,7 +211,7 @@ namespace Logfile.Structured.UnitTests.Elements
 					timeZone: TimeZoneInfo.Local);
 
 				parsed.MoreDataRequired.Should().BeFalse();
-				parsed.ConsumedData.Should().Be(data.Length);
+				parsed.ConsumedData.Should().Be(data.Length - ContentEncoding.Encoding.GetBytes(Constants.NewLine.ToString()).Length); // excluding the \n at the end of the serialized string ("\e\n")
 				var parsedHeader = (Header<StandardLoglevel>)parsed.Element;
 				parsedHeader.AppName.Should().Be(header.AppName);
 				parsedHeader.AppStartUpTime.Should().Be(time.ToUniversalTime());
@@ -228,7 +228,7 @@ namespace Logfile.Structured.UnitTests.Elements
 
 				var header = createHeader(appStartUpTime: time);
 				var serialized = header.Serialize(configuration);
-				var tempSerialized = serialized.Remove(serialized.Length - 1);
+				var tempSerialized = serialized.Remove(serialized.Length - 2);
 				tempSerialized = tempSerialized + $"{Constants.RecordSeparator}`key`=`value`{Constants.RecordSeparator}key2=`value2`{Constants.RecordSeparator}`key3`=value3{Constants.RecordSeparator}   key4  =  value4  {Constants.RecordSeparator}`key5`  =  `value5`" + Constants.EntitySeparator;
 				var data = ContentEncoding.Encoding.GetBytes(tempSerialized);
 				var parsed = Header<StandardLoglevel>.Parse(

@@ -166,7 +166,7 @@ namespace Logfile.Structured.UnitTests
 		public void KeepLogfilesNull_Should_UseZeroLogfiles()
 		{
 			// Arrange
-
+			// Act
 			var configuration = createConfiguration(keepLogfiles: null);
 
 			// Assert
@@ -174,7 +174,7 @@ namespace Logfile.Structured.UnitTests
 		}
 
 		[Test]
-		public void KeepLogfilesNegative_ShouldThrow_ArgumentOutOfRangeException()
+		public void KeepLogfilesBelowZero_ShouldThrow_ArgumentOutOfRangeException()
 		{
 			// Arrange
 			// Act

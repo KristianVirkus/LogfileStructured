@@ -131,7 +131,7 @@ namespace Logfile.Structured
             if (maximumLogfileSize <= 0) throw new ArgumentOutOfRangeException(nameof(maximumLogfileSize));
             this.MaximumLogfileSize = maximumLogfileSize ?? DefaultMaximumLogfileSize;
 
-            if (keepLogfiles < 0) throw new ArgumentOutOfRangeException(nameof(keepLogfiles));
+            if (keepLogfiles <= -1) throw new ArgumentOutOfRangeException(nameof(keepLogfiles));
             this.KeepLogfiles = keepLogfiles ?? DefaultKeepLogfiles;
 
             this.LogEventDetailFormatters = logEventDetailFormatters ?? throw new ArgumentNullException(nameof(logEventDetailFormatters));

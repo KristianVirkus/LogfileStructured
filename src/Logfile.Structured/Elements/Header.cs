@@ -101,7 +101,7 @@ namespace Logfile.Structured.Elements
 				sb.Append($"{Constants.RecordSeparator}{Constants.Indent}{Constants.QuotationMark}{encode(kvp.Key)}{Constants.QuotationMark}{Constants.AssignmentCharacter}{Constants.QuotationMark}{encode(kvp.Value)}{Constants.QuotationMark}");
 			}
 
-			sb.Append(Constants.EntitySeparator);
+			sb.Append(Constants.EntitySeparator + Constants.NewLine);
 			return sb.ToString();
 		}
 
