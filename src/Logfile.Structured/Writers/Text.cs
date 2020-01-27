@@ -3,13 +3,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Logfile.Structured.StreamWriters
+namespace Logfile.Structured.Writers
 {
 	/// <summary>
 	/// Implements an adapter to output structured log data to
 	/// arbitrary <see cref="TextWriter"/>s.
 	/// </summary>
-	public class Text : IStreamWriter
+	public class Text : ITextWriter
 	{
 		#region Fields
 
@@ -32,11 +32,27 @@ namespace Logfile.Structured.StreamWriters
 
 		#endregion
 
-		#region IStreamWriter implementation
+		#region IWriter implementation
 
 		public void Dispose()
 		{
 			// Do not close the stream created outside this class.
+			this.FlushAsync(default).ConfigureAwait(false).GetAwaiter().GetResult();
+		}
+
+		public async Task FlushAsync(CancellationToken cancellationToken)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			try
+			{
+				await this.textWriter.FlushAsync();
+			}
+			catch
+			{
+				// Ignore any exception as the text writer might have been disposed
+				// or it just failed to flush its cache.
+			}
 		}
 
 		public async Task WriteAsync(string text, CancellationToken cancellationToken)

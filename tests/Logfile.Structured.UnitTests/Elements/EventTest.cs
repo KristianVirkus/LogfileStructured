@@ -29,11 +29,11 @@ namespace Logfile.Structured.UnitTests.Elements
 			{ typeof(Logfile.Core.Details.Message), Logfile.Structured.Formatters.Message.Default },
 		};
 
-		static readonly IEnumerable<IStreamWriter> DefaultStreamWriters;
+		static readonly IEnumerable<ITextWriter> DefaultStreamWriters;
 
 		static EventTest()
 		{
-			var streamWriters = new[] { Mock.Of<IStreamWriter>() };
+			var streamWriters = new[] { Mock.Of<ITextWriter>() };
 			Mock.Get(streamWriters.Single())
 				.Setup(m => m.WriteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.Callback(() => { });
@@ -55,7 +55,7 @@ namespace Logfile.Structured.UnitTests.Elements
 			IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters = null,
 			bool makeLogEventDetailFormattersNull = false,
 			ISensitiveSettings sensitiveSettings = null,
-			IEnumerable<IStreamWriter> additionalStreamWriters = null,
+			IEnumerable<ITextWriter> additionalStreamWriters = null,
 			bool makeAdditionalStreamWritersNull = false,
 			bool isConsoleOutputBeautified = false)
 		{

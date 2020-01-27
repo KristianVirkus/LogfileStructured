@@ -92,9 +92,13 @@ namespace Logfile.Structured.SampleApp
 			logfile.Warning.Msg(new string('=', 1000)).Log();
 
 			Console.WriteLine("Flushing the write cache to the disk...");
-			// Wait a second until the log events get forwarded to the router and the file gets created.
+			// TODO It is still necessary to allow the queue get cleared by the
+			// routers' asynchronous mechanisms as there is currently no option to
+			// to wait for that, too. Flushing will only flush what's currently
+			// already written to output streams.
 			await Task.Delay(TimeSpan.FromSeconds(1));
-			await logfile.Configuration.Routers.OfType<Router<StandardLoglevel>>().Single().FlushAsync(default);
+
+			await logfile.FlushAsync(default);
 
 			Console.Write("All log events should be written to disk by now. Please hit RETURN to quit...");
 			while (Console.ReadKey(true).Key != ConsoleKey.Enter) ;

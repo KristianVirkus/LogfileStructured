@@ -15,7 +15,7 @@ namespace Logfile.Structured.UnitTests.Writers
 			// Arrange
 			// Act
 			// Assert
-			Assert.Throws<ArgumentNullException>(() => new StreamWriters.Text(null));
+			Assert.Throws<ArgumentNullException>(() => new Logfile.Structured.Writers.Text(null));
 		}
 
 		[Test]
@@ -26,7 +26,7 @@ namespace Logfile.Structured.UnitTests.Writers
 			{
 				using (var streamWriter = new StreamWriter(memoryStream))
 				{
-					using (var text = new StreamWriters.Text(streamWriter))
+					using (var text = new Logfile.Structured.Writers.Text(streamWriter))
 					{
 						// Act
 						await text.WriteAsync("test text", default);
@@ -47,7 +47,7 @@ namespace Logfile.Structured.UnitTests.Writers
 			{
 				using (var streamWriter = new StreamWriter(memoryStream))
 				{
-					using (var text = new StreamWriters.Text(streamWriter))
+					using (var text = new Logfile.Structured.Writers.Text(streamWriter))
 					{
 						// Act
 						text.Dispose();

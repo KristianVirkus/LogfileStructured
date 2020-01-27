@@ -20,7 +20,7 @@ namespace Logfile.Structured.UnitTests
 		class TestHelpers
 		{
 			public static StructuredLogfileConfiguration<StandardLoglevel> CreateConfiguration(
-				IEnumerable<IStreamWriter> additionalStreamWriters = null,
+				IEnumerable<ITextWriter> additionalStreamWriters = null,
 				bool makeAdditionalStreamWritersNull = false,
 				int maximumLogfileSize = 256,
 				int? keepLogfiles = 0,
@@ -44,7 +44,7 @@ namespace Logfile.Structured.UnitTests
 						// TODO { typeof(Core.Details.ExceptionDetail), Structured.Formatters.ExceptionDetail.Instance },
 					},
 					new Aes256SensitiveSettings(ContentEncoding.Encoding.GetBytes(new string(' ', 32))),
-					additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : new IStreamWriter[0]),
+					additionalStreamWriters ?? (makeAdditionalStreamWritersNull ? null : new ITextWriter[0]),
 					false);
 			}
 
@@ -66,7 +66,7 @@ namespace Logfile.Structured.UnitTests
 			public MemoryStream Stream { get; set; }
 			public Router<StandardLoglevel> Router { get; set; }
 			public StructuredLogfileConfiguration<StandardLoglevel> Configuration { get; set; }
-			public IEnumerable<IStreamWriter> AdditionalStreamWriters { get; set; }
+			public IEnumerable<ITextWriter> AdditionalStreamWriters { get; set; }
 
 			public Setup(
 				StructuredLogfileConfiguration<StandardLoglevel> configuration = null)
@@ -112,7 +112,7 @@ namespace Logfile.Structured.UnitTests
 			public async Task ForwardLogEventsWhileStopped_Should_ForwardLogEvents()
 			{
 				// Arrange
-				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<IStreamWriter>() }));
+				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<ITextWriter>() }));
 				var logEvent = setup.Logfile.New(StandardLoglevel.Warning);
 				var unblockWriteAsync = new ManualResetEventSlim(true);
 				var written = 0;
@@ -170,7 +170,7 @@ namespace Logfile.Structured.UnitTests
 			public async Task RoutablesEmpty_Should_NotInvokeWriter()
 			{
 				// Arrange
-				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<IStreamWriter>() }));
+				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<ITextWriter>() }));
 				var written = false;
 				Mock.Get(setup.AdditionalStreamWriters.Single())
 					.Setup(m => m.WriteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -191,7 +191,7 @@ namespace Logfile.Structured.UnitTests
 			public async Task ExceptionInWriter_Should_Ignore()
 			{
 				// Arrange
-				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<IStreamWriter>() }));
+				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<ITextWriter>() }));
 				var written = false;
 				Mock.Get(setup.AdditionalStreamWriters.Single())
 					.Setup(m => m.WriteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -208,7 +208,7 @@ namespace Logfile.Structured.UnitTests
 			public async Task ForwardLogEvent_Should_SendItToWrite()
 			{
 				// Arrange
-				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<IStreamWriter>() }));
+				var setup = new Setup(configuration: TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { Mock.Of<ITextWriter>() }));
 				var written = false;
 				Mock.Get(setup.AdditionalStreamWriters.Single())
 					.Setup(m => m.WriteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -490,6 +490,49 @@ namespace Logfile.Structured.UnitTests
 				files.Count.Should().Be(2);
 				files.Should().Contain("9");
 				files.Should().Contain("10");
+			}
+		}
+
+		public class Flushing
+		{
+			[Test]
+			public async Task CancellationTokenAlreadyCanceled_ShouldThrow_OperationCanceledException()
+			{
+				// Arrange
+				var router = TestHelpers.CreateRouter();
+
+				// Act & Assert
+				Assert.ThrowsAsync(Is.InstanceOf<OperationCanceledException>(),
+					async () => await router.FlushAsync(new CancellationToken(true)));
+			}
+
+			[Test]
+			public async Task ExceptionInWriterFlush_Should_Ignore()
+			{
+				// Arrange
+				var exceptionWriter = Mock.Of<ITextWriter>();
+				Mock.Get(exceptionWriter)
+					.Setup(m => m.FlushAsync(It.IsAny<CancellationToken>()))
+					.Throws<AggregateException>();
+
+				var finalWriterFlushed = false;
+				var finalWriter = Mock.Of<ITextWriter>();
+				Mock.Get(finalWriter)
+					.Setup(m => m.FlushAsync(It.IsAny<CancellationToken>()))
+					.Returns<CancellationToken>(_ =>
+					{
+						finalWriterFlushed = true;
+						return Task.CompletedTask;
+					});
+
+				var config = TestHelpers.CreateConfiguration(additionalStreamWriters: new[] { exceptionWriter, finalWriter });
+				var router = TestHelpers.CreateRouter(configuration: config);
+
+				// Act
+				await router.FlushAsync(default).ConfigureAwait(false);
+
+				// Assert
+				finalWriterFlushed.Should().BeTrue();
 			}
 		}
 	}
