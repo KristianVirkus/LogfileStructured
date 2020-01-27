@@ -39,7 +39,7 @@ namespace Logfile.Structured.Elements
 		/// <summary>
 		/// Gets the character for quoting values.
 		/// </summary>
-		public const char QuotationSign = '`';
+		public const char QuotationMark = '`';
 
 		/// <summary>
 		/// Gets the text signalling developer log events.
@@ -102,7 +102,8 @@ namespace Logfile.Structured.Elements
 			sb.Insert(0, $"{RecordSeparator}{(logfileHierarchy == null ? "" : $"{VisualRecordSeparator}{string.Join(".", logfileHierarchy.Hierarchy)}")}");
 			sb.Insert(0, $"{RecordSeparator}{VisualRecordSeparator}{this.LogEvent.Loglevel.ToString()}");
 			sb.Insert(0, $"{RecordSeparator} {this.LogEvent.Time.ToIso8601String()}");
-			sb.Insert(0, $"{Constants.EntitySeparator}{Identification}");
+			sb.Insert(0, $"{Identification}");
+			sb.Append(Constants.EntitySeparator);
 			return sb.ToString();
 		}
 
@@ -196,7 +197,7 @@ namespace Logfile.Structured.Elements
 				}
 
 				// Generate final output.
-				sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationSign}{ContentEncoding.Encode(id, additionalCharactersToEscape: (byte)QuotationSign)}{QuotationSign}={QuotationSign}{ContentEncoding.Encode(content, additionalCharactersToEscape: (byte)QuotationSign)}{QuotationSign}");
+				sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationMark}{ContentEncoding.Encode(id, additionalCharactersToEscape: (byte)QuotationMark)}{QuotationMark}={QuotationMark}{ContentEncoding.Encode(content, additionalCharactersToEscape: (byte)QuotationMark)}{QuotationMark}");
 				sb.Append(Constants.NewLine);
 
 				// All other log event details must be written in new lines.

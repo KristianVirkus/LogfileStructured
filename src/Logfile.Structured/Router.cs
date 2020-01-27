@@ -1,13 +1,16 @@
 ﻿using EventRouter.Core;
 using Logfile.Core;
+using Logfile.Structured.Elements;
+using Logfile.Structured.StreamReaders;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Logfile.Structured.Elements;
 
 namespace Logfile.Structured
 {
@@ -23,6 +26,7 @@ namespace Logfile.Structured
 		FileStream fileStream = null;
 		int fileSequenceNo = 0;
 		long bytesWrittenToFile = 0;
+		IFileSystem fileSystem = new FileSystem();
 
 		public async Task ReconfigureAsync(StructuredLogfileConfiguration<TLoglevel> configuration, CancellationToken cancellationToken)
 		{
@@ -95,12 +99,33 @@ namespace Logfile.Structured
 							{
 								if (this.fileStream == null)
 								{
-									// Initialize new file.
-									++this.fileSequenceNo;
-									if (!Directory.Exists(this.configuration.Path))
+									// TODO Issue #32 Abstract file system to increase testability
+									if (Directory.Exists(this.configuration.Path))
+									{
+										// Clean up old logfiles.
+										await this.CleanUpOldLogfilesAsync(this.fileSystem, cancellationToken).ConfigureAwait(false);
+									}
+									else
+									{
+										// Initialize directory.
 										Directory.CreateDirectory(this.configuration.Path);
-									var filePath = Path.Combine(this.configuration.Path, getFileName());
+									}
+
+									// Open new logfile.
+									++this.fileSequenceNo;
+									var startUpTime = DateTime.Now;
+									var filePath = Path.Combine(this.configuration.Path, this.configuration.BuildFileName(this.fileSequenceNo));
 									this.fileStream = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+
+									// Write file header.
+									var misc = new Dictionary<string, string>();
+									var header = new Header<TLoglevel>(
+										configuration.AppName,
+										startUpTime,
+										this.fileSequenceNo,
+										new ReadOnlyDictionary<string, string>(misc));
+									var headerData = ContentEncoding.Encoding.GetBytes(header.Serialize(this.configuration));
+									await this.fileStream.WriteAsync(headerData, 0, headerData.Length);
 								}
 
 								await this.fileStream.WriteAsync(data, 0, data.Length);
@@ -192,16 +217,80 @@ namespace Logfile.Structured
 			}
 		}
 
-		/// <summary>
-		/// Replaces common placeholders in the set-up filename format with
-		/// actual values from the context.
-		/// </summary>
-		/// <returns>The final filename.</returns>
-		string getFileName() => this.configuration.FileNameFormat
-			.Replace("{app-name}", this.configuration.AppName)
-			.Replace("{start-up-time}", System.Diagnostics.Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd-HHmmssfff"))
-			.Replace("{creation-time}", DateTime.Now.ToString("yyyyMMdd-HHmmssfff"))
-			.Replace("{seq-no}", this.fileSequenceNo.ToString());
+		internal async Task CleanUpOldLogfilesAsync(IFileSystem fileSystem, CancellationToken cancellationToken)
+		{
+			if (fileSystem == null) throw new ArgumentNullException(nameof(fileSystem));
+
+			cancellationToken.ThrowIfCancellationRequested();
+
+			var config = this.configuration;
+			if (config == null) return;
+			if ((config.KeepLogfiles ?? -1) < 0) return; // If to keep all logfiles, abort now.
+
+			try
+			{
+				// Create map of matching files with their creation dates and sequence numbers.
+				var list = new List<(DateTime StartUpTime, int SequenceNo, string FilePath)>();
+				// Find files matching the file name format.
+				var fileNames = fileSystem.EnumerateFiles(this.configuration.Path).Select(n => Path.GetFileName(n));
+
+				// Filter by fixed file name beginning and ending.
+				var exampleFileName = config.BuildFileName(1);
+				var fileNamePattern = config.FileNameFormat.Replace("{app-name}", config.AppName); // Replace app-name as it is configurable but then static and does not change with any subsequently generated logfile.
+				var commonBeginning = FindCommonBeginning(a: exampleFileName, b: fileNamePattern);
+				var commonEnding = new string(FindCommonBeginning(
+									a: new string(exampleFileName.Reverse().ToArray()),
+									b: new string(fileNamePattern.Reverse().ToArray())).Reverse().ToArray());
+				fileNames = fileNames.Where(f => f.StartsWith(commonBeginning) && f.EndsWith(commonEnding));
+
+				foreach (var fileName in fileNames)
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+
+					// Parse file headers.
+					try
+					{
+						var filePath = Path.Combine(this.configuration.Path, fileName);
+						using (var fileStream = fileSystem.OpenForReading(filePath))
+						{
+							var reader = new StructuredLogfileReader<TLoglevel>(fileStream);
+							var header = (Header<TLoglevel>)(await reader.ReadNextElementAsync(cancellationToken).ConfigureAwait(false));
+							list.Add((StartUpTime: header.AppStartUpTime, SequenceNo: header.AppInstanceLogfileSequenceNumber, FilePath: filePath));
+						}
+					}
+					catch (Exception ex)
+					{
+						// TODO Log.
+					}
+				}
+
+				// Delete all files above threshold + 1 (as a new file is going to be created right now)
+				var orderedList = from l in list
+								  orderby l.StartUpTime, l.SequenceNo
+								  select l.FilePath;
+				foreach (var filePathToDelete in orderedList
+													.Take(Math.Min(
+															orderedList.Count(),
+															orderedList.Count() - config.KeepLogfiles.Value)) // add +1 if new logfile should considered part of the "logfiles to keep"
+													.ToList())
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+
+					try
+					{
+						fileSystem.DeleteFile(filePathToDelete);
+					}
+					catch (Exception ex)
+					{
+						// TODO Log.
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				// TODO Log.
+			}
+		}
 
 		/// <summary>
 		/// Strips structural characters (from the structured logfile format) from a string.
@@ -214,6 +303,44 @@ namespace Logfile.Structured
 			if (s == null) throw new ArgumentNullException(nameof(s));
 
 			return s.Replace(Constants.EntitySeparator, "").Replace(Event.RecordSeparator, "");
+		}
+
+		/// <summary>
+		/// Finds the common beginning of two strings.
+		/// </summary>
+		/// <param name="a">The first string.</param>
+		/// <param name="b">The second string.</param>
+		/// <returns>The common beginning.</returns>
+		/// <exception cref="ArgumentNullException">Thrown, if
+		///		<paramref name="a"/> or <paramref name="b"/> is null.</exception>
+		public static string FindCommonBeginning(string a, string b)
+		{
+			if (a == null) throw new ArgumentNullException(nameof(a));
+			if (b == null) throw new ArgumentNullException(nameof(b));
+
+			var shorter = (a.Length < b.Length ? a : b).AsEnumerable();
+			var longer = (a.Length >= b.Length ? a : b).AsEnumerable();
+			return new string(shorter.TakeWhile((c, i) => longer.ElementAt(i) == c).ToArray());
+		}
+
+		#endregion
+
+		#region Nested types
+
+		/// <summary>
+		/// Implements file handling for files and directories.
+		/// Not testable as directly tied to file system operations.
+		/// </summary>
+		class FileSystem : IFileSystem
+		{
+			/// <inherit />
+			public void DeleteFile(string filePath) => File.Delete(filePath);
+
+			/// <inherit />
+			public IEnumerable<string> EnumerateFiles(string path) => Directory.EnumerateFiles(path);
+
+			/// <inherit />
+			public Stream OpenForReading(string filePath) => File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 		}
 
 		#endregion

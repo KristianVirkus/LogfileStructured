@@ -18,6 +18,32 @@ namespace Logfile.Structured
 		public const string IgnoredAfterEntitySeparators = " \t\n\r";
 
 		/// <summary>
+		/// Gets the separator for multiple records within an event.
+		/// </summary>
+		public const string RecordSeparator = "\x1f";
+
+		/// <summary>
+		/// Gets the visual separator for multiple records within an event.
+		/// </summary>
+		public const string VisualRecordSeparator = " == ";
+
+		/// <summary>
+		/// Gets a string with characters to be ignored after record separators
+		/// when reading an event.
+		/// </summary>
+		public const string IgnoredAfterRecordSeparators = " -=#*\t\n";
+
+		/// <summary>
+		/// Gets the character for quoting values.
+		/// </summary>
+		public const char QuotationMark = '`';
+
+		/// <summary>
+		/// Gets the character for assigning values.
+		/// </summary>
+		public const char AssignmentCharacter = '=';
+
+		/// <summary>
 		/// Gets the character to introduce new lines.
 		/// </summary>
 		public const char NewLine = '\n';

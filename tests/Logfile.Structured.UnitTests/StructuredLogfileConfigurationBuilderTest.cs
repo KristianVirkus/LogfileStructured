@@ -240,6 +240,42 @@ namespace Logfile.Structured.UnitTests
 				// Assert
 				builder.IsConsoleOutputBeautified.Should().BeTrue();
 			}
+
+			[Test]
+			public void KeepLogfilesMinusOne_ShouldThrow_ArgumentOutOfRangeException()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Act & Assert
+				Assert.Throws<ArgumentOutOfRangeException>(() => builder.KeepLogfiles(-1));
+			}
+
+			[Test]
+			public void KeepLogfilesZero_Should_KeepNoLogfile()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Act
+				builder.KeepLogfiles(0);
+
+				// Assert
+				builder.KeepLogfiles.Should().Be(0);
+			}
+
+			[Test]
+			public void KeepLogfilesPositive_Should_KeepNumberOfLogfiles()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Act
+				builder.KeepLogfiles(5);
+
+				// Assert
+				builder.KeepLogfiles.Should().Be(5);
+			}
 		}
 	}
 }

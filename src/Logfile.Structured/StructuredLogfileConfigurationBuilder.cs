@@ -244,7 +244,7 @@ namespace Logfile.Structured
 		/// </summary>
 		/// <param name="configurationBuilder">The configuration builder.</param>
 		/// <param name="count">The maximum number of logfiles in addition to the current one
-		///		to keep in the configured path.</param>
+		///		to keep in the configured path. Use null to disable logfiles clean-up.</param>
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if <paramref name="configurationBuilder"/>
 		///		is null.</exception>
@@ -255,7 +255,7 @@ namespace Logfile.Structured
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
-			if (count <= 0) throw new ArgumentNullException(nameof(count));
+			if (count <= -1) throw new ArgumentOutOfRangeException(nameof(count));
 			configurationBuilder.KeepLogfiles = count;
 			return configurationBuilder;
 		}

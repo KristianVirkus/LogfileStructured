@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
+using Logfile.Structured.Elements;
 using NUnit.Framework;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Logfile.Structured.UnitTests.Writers
@@ -33,7 +33,7 @@ namespace Logfile.Structured.UnitTests.Writers
 						await streamWriter.FlushAsync();
 
 						// Assert
-						Encoding.UTF8.GetString(memoryStream.ToArray()).Should().Be("test text");
+						ContentEncoding.Encoding.GetString(memoryStream.ToArray()).Should().Be("test text");
 					}
 				}
 			}
@@ -56,7 +56,7 @@ namespace Logfile.Structured.UnitTests.Writers
 						await streamWriter.FlushAsync();
 
 						// Assert
-						Encoding.UTF8.GetString(memoryStream.ToArray()).Should().Be("test text");
+						ContentEncoding.Encoding.GetString(memoryStream.ToArray()).Should().Be("test text");
 					}
 				}
 			}

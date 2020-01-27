@@ -110,14 +110,14 @@ namespace Logfile.Structured.UnitTests.Elements
 			var s = evt.Serialize(createConfiguration());
 
 			// Assert
-			var expected = $"{Constants.EntitySeparator}{Event.Identification}"
+			var expected = $"{Event.Identification}"
 				+ $"{Event.RecordSeparator} {logEvent.Time.ToIso8601String()}"
 				+ $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{logEvent.Loglevel.ToString()}"
 				+ $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{string.Join(".", logfileHierarchy.Hierarchy)}"
 				+ $"{Event.RecordSeparator}{Event.VisualRecordSeparator}1 Event"
 				+ $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.DeveloperFlag}"
-				+ $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.QuotationSign}{Logfile.Structured.Formatters.Message.Identification}{Event.QuotationSign}={Event.QuotationSign}{ContentEncoding.Encode("Multi-line\r\nmessage\r\nwith ` character to escape", additionalCharactersToEscape: (byte)Event.QuotationSign)}{Event.QuotationSign}"
-				+ $"{Constants.NewLine}";
+				+ $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.QuotationMark}{Logfile.Structured.Formatters.Message.Identification}{Event.QuotationMark}={Event.QuotationMark}{ContentEncoding.Encode("Multi-line\r\nmessage\r\nwith ` character to escape", additionalCharactersToEscape: (byte)Event.QuotationMark)}{Event.QuotationMark}"
+				+ $"{Constants.NewLine}{Constants.EntitySeparator}";
 			s.Should().Be(expected);
 		}
 	}
