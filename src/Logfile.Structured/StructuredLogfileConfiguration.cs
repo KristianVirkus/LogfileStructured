@@ -72,7 +72,7 @@ namespace Logfile.Structured
         /// <summary>
         /// Gets the additional stream writers.
         /// </summary>
-        public IEnumerable<IStreamWriter> StreamWriters { get; }
+        public IEnumerable<ITextWriter> StreamWriters { get; }
 
         /// <summary>
         /// Gets or sets whether to beautify (debug) console output by stripping
@@ -118,7 +118,7 @@ namespace Logfile.Structured
         public StructuredLogfileConfiguration(string appName, bool writeToConsole, bool writeToDebugConsole,
             bool writeToDisk, string path, string fileNameFormat, int? maximumLogfileSize, int? keepLogfiles,
             IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters,
-            ISensitiveSettings sensitiveSettings, IEnumerable<IStreamWriter> additionalStreamWriters,
+            ISensitiveSettings sensitiveSettings, IEnumerable<ITextWriter> additionalStreamWriters,
             bool isConsoleOutputBeautified)
         {
             this.AppName = appName ?? (System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetExecutingAssembly())?.GetName().Name ?? DefaultAppName;

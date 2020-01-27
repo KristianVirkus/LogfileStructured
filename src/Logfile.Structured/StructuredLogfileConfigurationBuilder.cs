@@ -67,7 +67,7 @@ namespace Logfile.Structured
 		/// <summary>
 		/// Gets or sets the additional stream writer.
 		/// </summary>
-		public List<IStreamWriter> StreamWriters { get; set; } = new List<IStreamWriter>();
+		public List<ITextWriter> StreamWriters { get; set; } = new List<ITextWriter>();
 
 		/// <summary>
 		/// Gets or sets whether to beautify (debug) console output by stripping
@@ -321,14 +321,14 @@ namespace Logfile.Structured
 		///		is null.</exception>
 		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseWriter<TLoglevel>(
 			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder,
-			IStreamWriter additionalStreamWriter)
+			ITextWriter additionalStreamWriter)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
 			if (additionalStreamWriter == null) throw new ArgumentNullException(nameof(additionalStreamWriter));
 
 			if (configurationBuilder.StreamWriters == null)
-				configurationBuilder.StreamWriters = new List<IStreamWriter>();
+				configurationBuilder.StreamWriters = new List<ITextWriter>();
 			configurationBuilder.StreamWriters.Add(additionalStreamWriter);
 			return configurationBuilder;
 		}

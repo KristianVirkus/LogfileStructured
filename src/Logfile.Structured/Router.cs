@@ -18,7 +18,7 @@ namespace Logfile.Structured
 	/// Implements the router for structured logfiles.
 	/// </summary>
 	/// <typeparam name="TLoglevel">The loglevel type.</typeparam>
-	public class Router<TLoglevel> : IRouter<LogEvent<TLoglevel>>
+	public class Router<TLoglevel> : IFlushableRouter<LogEvent<TLoglevel>>
 		where TLoglevel : Enum
 	{
 		readonly SemaphoreSlim sync = new SemaphoreSlim(1);
@@ -50,11 +50,33 @@ namespace Logfile.Structured
 		/// <param name="cancellationToken">The <c>CancellationToken</c> to abort the process.</param>
 		public async Task FlushAsync(CancellationToken cancellationToken)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
+
 			await this.sync.WaitAsync(cancellationToken);
 			try
 			{
 				if (this.fileStream != null)
 					await this.fileStream.FlushAsync(cancellationToken);
+
+				cancellationToken.ThrowIfCancellationRequested();
+
+				var streamWriters = this.configuration?.StreamWriters?.ToList();
+				if (streamWriters != null)
+				{
+					foreach (var streamWriter in streamWriters)
+					{
+						cancellationToken.ThrowIfCancellationRequested();
+
+						try
+						{
+							await streamWriter.FlushAsync(cancellationToken);
+						}
+						catch
+						{
+							// TODO Log.
+						}
+					}
+				}
 			}
 			finally
 			{

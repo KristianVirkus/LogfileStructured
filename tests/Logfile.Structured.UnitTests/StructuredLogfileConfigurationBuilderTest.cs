@@ -44,7 +44,7 @@ namespace Logfile.Structured.UnitTests
 			public void UnconfiguredButNecessarySettingsOnly_Should_CreateDefaultConfiguration()
 			{
 				// Arrange
-				var additionalStreamWriter = Mock.Of<IStreamWriter>();
+				var additionalStreamWriter = Mock.Of<ITextWriter>();
 
 				// Act
 				var configuration = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>()
@@ -64,7 +64,7 @@ namespace Logfile.Structured.UnitTests
 			public void FullyConfigured_Should_CreateCustomConfiguration()
 			{
 				// Arrange
-				var additionalStreamWriters = new[] { Mock.Of<IStreamWriter>() };
+				var additionalStreamWriters = new[] { Mock.Of<ITextWriter>() };
 				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>
 				{
 					LogEventDetailFormatters = new Dictionary<Type, Structured.Formatters.ILogEventDetailFormatter>
@@ -202,7 +202,7 @@ namespace Logfile.Structured.UnitTests
 			{
 				// Arrange
 				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
-				var additionalStreamWriter = Mock.Of<IStreamWriter>();
+				var additionalStreamWriter = Mock.Of<ITextWriter>();
 
 				// Act
 				builder.UseWriter(additionalStreamWriter);
@@ -215,7 +215,7 @@ namespace Logfile.Structured.UnitTests
 			public void AddWriterWithConfigurationBuilderNull_ShouldThrow_ArgumentNullException()
 			{
 				// Arrange
-				var additionalStreamWriter = Mock.Of<IStreamWriter>();
+				var additionalStreamWriter = Mock.Of<ITextWriter>();
 
 				// Act
 				// Assert
