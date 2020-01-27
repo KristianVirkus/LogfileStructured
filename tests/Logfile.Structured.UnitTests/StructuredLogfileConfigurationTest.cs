@@ -21,11 +21,11 @@ namespace Logfile.Structured.UnitTests
 
 		static readonly ISensitiveSettings DefaultSensitiveSettings = new Aes256SensitiveSettings(new byte[32]);
 
-		static readonly IEnumerable<IStreamWriter> DefaultStreamWriters;
+		static readonly IEnumerable<ITextWriter> DefaultStreamWriters;
 
 		static StructuredLogfileConfigurationTest()
 		{
-			DefaultStreamWriters = new[] { Mock.Of<IStreamWriter>() };
+			DefaultStreamWriters = new[] { Mock.Of<ITextWriter>() };
 			Mock.Get(DefaultStreamWriters.Single())
 				.Setup(m => m.WriteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
 				.Callback(() => { });
@@ -45,7 +45,7 @@ namespace Logfile.Structured.UnitTests
 			int? keepLogfiles = 5,
 			IReadOnlyDictionary<Type, ILogEventDetailFormatter> logEventDetailFormatters = null, bool makeLogEventDetailFormattersNull = false,
 			ISensitiveSettings sensitiveSettings = null,
-			IEnumerable<IStreamWriter> additionalStreamWriters = null, bool makeAdditionalStreamWritersNull = false,
+			IEnumerable<ITextWriter> additionalStreamWriters = null, bool makeAdditionalStreamWritersNull = false,
 			bool isConsoleOutputBeautified = false)
 		{
 			return new StructuredLogfileConfiguration<StandardLoglevel>(
@@ -108,7 +108,7 @@ namespace Logfile.Structured.UnitTests
 			var configuration = createConfiguration(appName: null);
 
 			// Assert
-			configuration.AppName.Should().BeOneOf("testhost", StructuredLogfileConfiguration<StandardLoglevel>.DefaultAppName);
+			configuration.AppName.Should().NotBeNull();
 		}
 
 		[Test]
@@ -166,7 +166,7 @@ namespace Logfile.Structured.UnitTests
 		public void KeepLogfilesNull_Should_UseZeroLogfiles()
 		{
 			// Arrange
-
+			// Act
 			var configuration = createConfiguration(keepLogfiles: null);
 
 			// Assert
@@ -174,7 +174,7 @@ namespace Logfile.Structured.UnitTests
 		}
 
 		[Test]
-		public void KeepLogfilesNegative_ShouldThrow_ArgumentOutOfRangeException()
+		public void KeepLogfilesBelowZero_ShouldThrow_ArgumentOutOfRangeException()
 		{
 			// Arrange
 			// Act

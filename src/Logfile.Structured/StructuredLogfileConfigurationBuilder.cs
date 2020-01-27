@@ -67,7 +67,7 @@ namespace Logfile.Structured
 		/// <summary>
 		/// Gets or sets the additional stream writer.
 		/// </summary>
-		public List<IStreamWriter> StreamWriters { get; set; } = new List<IStreamWriter>();
+		public List<ITextWriter> StreamWriters { get; set; } = new List<ITextWriter>();
 
 		/// <summary>
 		/// Gets or sets whether to beautify (debug) console output by stripping
@@ -244,7 +244,7 @@ namespace Logfile.Structured
 		/// </summary>
 		/// <param name="configurationBuilder">The configuration builder.</param>
 		/// <param name="count">The maximum number of logfiles in addition to the current one
-		///		to keep in the configured path.</param>
+		///		to keep in the configured path. Use null to disable logfiles clean-up.</param>
 		/// <returns>The same configuration builder instance to allow a fluent syntax.</returns>
 		/// <exception cref="ArgumentNullException">Thrown if <paramref name="configurationBuilder"/>
 		///		is null.</exception>
@@ -255,7 +255,7 @@ namespace Logfile.Structured
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
-			if (count <= 0) throw new ArgumentNullException(nameof(count));
+			if (count <= -1) throw new ArgumentOutOfRangeException(nameof(count));
 			configurationBuilder.KeepLogfiles = count;
 			return configurationBuilder;
 		}
@@ -321,14 +321,14 @@ namespace Logfile.Structured
 		///		is null.</exception>
 		public static StructuredLoglevelConfigurationBuilder<TLoglevel> UseWriter<TLoglevel>(
 			this StructuredLoglevelConfigurationBuilder<TLoglevel> configurationBuilder,
-			IStreamWriter additionalStreamWriter)
+			ITextWriter additionalStreamWriter)
 			where TLoglevel : Enum
 		{
 			if (configurationBuilder == null) throw new ArgumentNullException(nameof(configurationBuilder));
 			if (additionalStreamWriter == null) throw new ArgumentNullException(nameof(additionalStreamWriter));
 
 			if (configurationBuilder.StreamWriters == null)
-				configurationBuilder.StreamWriters = new List<IStreamWriter>();
+				configurationBuilder.StreamWriters = new List<ITextWriter>();
 			configurationBuilder.StreamWriters.Add(additionalStreamWriter);
 			return configurationBuilder;
 		}

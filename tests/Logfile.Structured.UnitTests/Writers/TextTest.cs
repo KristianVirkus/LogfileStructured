@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
+using Logfile.Structured.Elements;
 using NUnit.Framework;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Logfile.Structured.UnitTests.Writers
@@ -15,7 +15,7 @@ namespace Logfile.Structured.UnitTests.Writers
 			// Arrange
 			// Act
 			// Assert
-			Assert.Throws<ArgumentNullException>(() => new StreamWriters.Text(null));
+			Assert.Throws<ArgumentNullException>(() => new Logfile.Structured.Writers.Text(null));
 		}
 
 		[Test]
@@ -26,14 +26,14 @@ namespace Logfile.Structured.UnitTests.Writers
 			{
 				using (var streamWriter = new StreamWriter(memoryStream))
 				{
-					using (var text = new StreamWriters.Text(streamWriter))
+					using (var text = new Logfile.Structured.Writers.Text(streamWriter))
 					{
 						// Act
 						await text.WriteAsync("test text", default);
 						await streamWriter.FlushAsync();
 
 						// Assert
-						Encoding.UTF8.GetString(memoryStream.ToArray()).Should().Be("test text");
+						ContentEncoding.Encoding.GetString(memoryStream.ToArray()).Should().Be("test text");
 					}
 				}
 			}
@@ -47,7 +47,7 @@ namespace Logfile.Structured.UnitTests.Writers
 			{
 				using (var streamWriter = new StreamWriter(memoryStream))
 				{
-					using (var text = new StreamWriters.Text(streamWriter))
+					using (var text = new Logfile.Structured.Writers.Text(streamWriter))
 					{
 						// Act
 						text.Dispose();
@@ -56,7 +56,7 @@ namespace Logfile.Structured.UnitTests.Writers
 						await streamWriter.FlushAsync();
 
 						// Assert
-						Encoding.UTF8.GetString(memoryStream.ToArray()).Should().Be("test text");
+						ContentEncoding.Encoding.GetString(memoryStream.ToArray()).Should().Be("test text");
 					}
 				}
 			}

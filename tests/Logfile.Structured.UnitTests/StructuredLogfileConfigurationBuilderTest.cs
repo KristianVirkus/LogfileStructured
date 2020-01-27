@@ -44,7 +44,7 @@ namespace Logfile.Structured.UnitTests
 			public void UnconfiguredButNecessarySettingsOnly_Should_CreateDefaultConfiguration()
 			{
 				// Arrange
-				var additionalStreamWriter = Mock.Of<IStreamWriter>();
+				var additionalStreamWriter = Mock.Of<ITextWriter>();
 
 				// Act
 				var configuration = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>()
@@ -64,7 +64,7 @@ namespace Logfile.Structured.UnitTests
 			public void FullyConfigured_Should_CreateCustomConfiguration()
 			{
 				// Arrange
-				var additionalStreamWriters = new[] { Mock.Of<IStreamWriter>() };
+				var additionalStreamWriters = new[] { Mock.Of<ITextWriter>() };
 				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>
 				{
 					LogEventDetailFormatters = new Dictionary<Type, Structured.Formatters.ILogEventDetailFormatter>
@@ -202,7 +202,7 @@ namespace Logfile.Structured.UnitTests
 			{
 				// Arrange
 				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
-				var additionalStreamWriter = Mock.Of<IStreamWriter>();
+				var additionalStreamWriter = Mock.Of<ITextWriter>();
 
 				// Act
 				builder.UseWriter(additionalStreamWriter);
@@ -215,7 +215,7 @@ namespace Logfile.Structured.UnitTests
 			public void AddWriterWithConfigurationBuilderNull_ShouldThrow_ArgumentNullException()
 			{
 				// Arrange
-				var additionalStreamWriter = Mock.Of<IStreamWriter>();
+				var additionalStreamWriter = Mock.Of<ITextWriter>();
 
 				// Act
 				// Assert
@@ -239,6 +239,42 @@ namespace Logfile.Structured.UnitTests
 
 				// Assert
 				builder.IsConsoleOutputBeautified.Should().BeTrue();
+			}
+
+			[Test]
+			public void KeepLogfilesMinusOne_ShouldThrow_ArgumentOutOfRangeException()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Act & Assert
+				Assert.Throws<ArgumentOutOfRangeException>(() => builder.KeepLogfiles(-1));
+			}
+
+			[Test]
+			public void KeepLogfilesZero_Should_KeepNoLogfile()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Act
+				builder.KeepLogfiles(0);
+
+				// Assert
+				builder.KeepLogfiles.Should().Be(0);
+			}
+
+			[Test]
+			public void KeepLogfilesPositive_Should_KeepNumberOfLogfiles()
+			{
+				// Arrange
+				var builder = new StructuredLoglevelConfigurationBuilder<StandardLoglevel>();
+
+				// Act
+				builder.KeepLogfiles(5);
+
+				// Assert
+				builder.KeepLogfiles.Should().Be(5);
 			}
 		}
 	}
