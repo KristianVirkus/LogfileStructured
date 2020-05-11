@@ -84,7 +84,7 @@ namespace Logfile.Structured.Formatters
 			{
 				for (int i = 0; i < eventID.StringArguments.Count(); i++)
 				{
-					var name = eventID.ParameterNames.Count() >= i + 1 ? eventID.ParameterNames.ElementAt(i) : null;
+					var name = eventID.ParameterNames?.Count() >= i + 1 ? eventID.ParameterNames.ElementAt(i) : null;
 					var value = eventID.StringArguments.ElementAt(i);
 					var obj = new JObject();
 					if (!string.IsNullOrWhiteSpace(name))

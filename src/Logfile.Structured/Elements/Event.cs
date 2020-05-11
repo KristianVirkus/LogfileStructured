@@ -117,7 +117,7 @@ namespace Logfile.Structured.Elements
                 for (int i = 0; i < eventID.StringArguments.Count(); i++)
                 {
                     if (i > 0) arguments.Append(", ");
-                    var name = eventID.ParameterNames.Count() >= i + 1 ? eventID.ParameterNames.ElementAt(i) : null;
+                    var name = eventID.ParameterNames?.Count() >= i + 1 ? eventID.ParameterNames.ElementAt(i) : null;
                     var value = eventID.StringArguments.ElementAt(i);
                     if (value != null) value = ContentEncoding.Encode(value);
                     if (!string.IsNullOrWhiteSpace(name))
