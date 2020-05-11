@@ -129,5 +129,29 @@ namespace Logfile.Structured.UnitTests.Elements
                 + $"{Constants.NewLine}{Constants.EntitySeparator}";
             s.Should().Be(expected);
         }
+
+        [Test]
+        public void SerializeCompleteWithoutEventArguments_Should_IncludeNewLineAtTheEnd()
+        {
+            // Arrange
+            var logEvent = new Logfile<StandardLoglevel>().New(StandardLoglevel.Warning);
+            logEvent = logEvent.Force.Developer.Event(TestEvents.Sub.Event);
+            var logfileHierarchy = new LogfileHierarchy(new[] { "to`p", "sub" });
+            logEvent.Details.Add(logfileHierarchy);
+            var evt = new Event<StandardLoglevel>(logEvent);
+
+            // Act
+            var s = evt.Serialize(CreateConfiguration());
+
+            // Assert
+            var expected = $"{Event.Identification}"
+                + $"{Event.RecordSeparator} {logEvent.Time.ToIso8601String()}"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{logEvent.Loglevel.ToString()}"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}to%60p.sub"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}1 Event"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.DeveloperFlag}"
+                + $"{Constants.NewLine}{Constants.EntitySeparator}";
+            s.Should().Be(expected);
+        }
     }
 }
