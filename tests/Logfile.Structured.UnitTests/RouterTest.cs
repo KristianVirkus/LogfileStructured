@@ -450,6 +450,41 @@ namespace Logfile.Structured.UnitTests
 			}
 
 			[Test]
+			public async Task HeaderCannotBeRead_Should_IgnoreFile()
+			{
+				// Arrange
+				var config = TestHelpers.CreateConfiguration(keepLogfiles: 0, path: "", fileNameFormat: "{seq-no}");
+				var router = TestHelpers.CreateRouter(configuration: config);
+
+				const int filesCount = 10;
+				var files = new List<string>();
+				for (int i = 1; i <= filesCount; i++)
+					files.Add(Path.Combine(config.Path, config.BuildFileName(i)));
+
+				var fileSystem = Mock.Of<IFileSystem>();
+				Mock.Get(fileSystem)
+					.Setup(m => m.EnumerateFiles(It.IsAny<string>()))
+					.Returns(files);
+				Mock.Get(fileSystem)
+					.Setup(m => m.DeleteFile(It.IsAny<string>()))
+					.Callback<string>(filePath =>
+					{
+						foreach (var fileName in files.Where(n => filePath.EndsWith(n)).ToList())
+							files.Remove(fileName);
+					});
+				Mock.Get(fileSystem)
+					.Setup(m => m.OpenForReading(It.IsAny<string>()))
+					.Returns<string>(
+						filePath => new MemoryStream(new byte[0]));
+
+				// Act
+				await router.CleanUpOldLogfilesAsync(fileSystem, default).ConfigureAwait(false);
+
+				// Assert
+				files.Count.Should().Be(filesCount);
+			}
+
+			[Test]
 			public async Task DeleteAllButTwoLogfiles_Should_DeleteAllButTwoOldLogfiles()
 			{
 				// Arrange

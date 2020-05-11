@@ -278,7 +278,12 @@ namespace Logfile.Structured
 						{
 							var reader = new StructuredLogfileReader<TLoglevel>(fileStream);
 							var header = (Header<TLoglevel>)(await reader.ReadNextElementAsync(cancellationToken).ConfigureAwait(false));
-							list.Add((StartUpTime: header.AppStartUpTime, SequenceNo: header.AppInstanceLogfileSequenceNumber, FilePath: filePath));
+							if (header != null)
+							{
+								list.Add((StartUpTime: header.AppStartUpTime,
+										  SequenceNo: header.AppInstanceLogfileSequenceNumber,
+										  FilePath: filePath));
+							}
 						}
 					}
 					catch (Exception ex)
