@@ -91,7 +91,7 @@ namespace Logfile.Structured.Elements
 			var sb = new StringBuilder();
 
 			// Use all details. Treat event ID separately if only a single event ID is mentioned.
-			var detailsEnu = (eventIDs.Count() <= 1 ? this.LogEvent.Details.Where(d => !(d is EventID)) : this.LogEvent.Details);
+			var detailsEnu = this.LogEvent.Details.Where(d => !(d is EventID) || d != eventID || (d == eventID && eventID?.StringArguments?.Any() == true));
 			detailsEnu = detailsEnu.Where(d => !(d is LogfileHierarchy));
 			var details = detailsEnu.ToList();
 
@@ -190,7 +190,11 @@ namespace Logfile.Structured.Elements
 				}
 
 				// Determine formatter and overwrite content and ID.
-				if (configuration.LogEventDetailFormatters.TryGetValue(detail.GetType(), out var formatter))
+				var formatter = configuration.LogEventDetailFormatters.Values
+									.Where(f => f.SupportedLogEventDetailsTypes.Contains(detail.GetType())
+													|| (detail.GetType().IsGenericType
+														&& f.SupportedLogEventDetailsTypes.Contains(detail.GetType().BaseType))).FirstOrDefault();
+				if (formatter != null)
 				{
 					content = formatter.Format(detail);
 					id = formatter.ID;

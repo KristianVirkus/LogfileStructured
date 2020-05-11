@@ -173,12 +173,10 @@ namespace Logfile.Structured.Elements
 					throw new FormatException("Invalid start-up time.");
 				var startUpTimeText = decode(ContentEncoding.Encoding.GetString(startUpTimeKvp.Value ?? new byte[0]));
 				var startUpTime = DateTimeExtensions.ParseIso8601String(startUpTimeText);
-				if (startUpTime.Kind == DateTimeKind.Unspecified)
-				{
-					startUpTime = TimeZoneInfo.ConvertTimeToUtc(startUpTime, timeZone);
-				}
 				if (startUpTime.Kind != DateTimeKind.Utc)
-					startUpTime = startUpTime.ToUniversalTime();
+				{
+					startUpTime = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(startUpTime, DateTimeKind.Unspecified), timeZone);
+				}
 
 				var sequenceNoRecord = ContentEncoding.TrimData(data: records.ElementAt(record++), charactersToTrim: charactersToTrim);
 				var sequenceNoKvp = ContentEncoding.ParseKeyValuePair(data: sequenceNoRecord);
