@@ -201,7 +201,7 @@ namespace Logfile.Structured
 						}
 
 						// Write to debug console if enabled.
-						if (this.configuration.WriteToConsole)
+						if (this.configuration.WriteToDebugConsole)
 						{
 							try
 							{
@@ -214,6 +214,7 @@ namespace Logfile.Structured
 							}
 						}
 
+						// Write to all configured additional stream writers.
 						foreach (var streamWriter in this.configuration.StreamWriters)
 						{
 							cancellationToken.ThrowIfCancellationRequested();

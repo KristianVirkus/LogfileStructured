@@ -7,5 +7,6 @@ namespace Logfile.Structured.SampleApp
     {
         [Parameters("P1", "P2")]
         One = 1,
+        Two = 2,
     }
 }

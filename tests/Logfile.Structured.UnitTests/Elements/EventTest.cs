@@ -104,8 +104,8 @@ namespace Logfile.Structured.UnitTests.Elements
         {
             // Arrange
             var logEvent = new Logfile<StandardLoglevel>().New(StandardLoglevel.Warning);
-            logEvent = logEvent.Force.Developer.Event(TestEvents.Sub.Event, 1, 2, 3).Msg("Multi-line\r\nmessage\r\nwith ` character to escape");
-            var logfileHierarchy = new LogfileHierarchy(new[] { "top", "sub" });
+            logEvent = logEvent.Force.Developer.Event(TestEvents.Sub.Event, 1, "abc`def", "3").Msg("Multi-line\r\nmessage\r\nwith ` character to escape");
+            var logfileHierarchy = new LogfileHierarchy(new[] { "to`p", "sub" });
             logEvent.Details.Add(logfileHierarchy);
             var evt = new Event<StandardLoglevel>(logEvent);
 
@@ -121,8 +121,8 @@ namespace Logfile.Structured.UnitTests.Elements
             var expected = $"{Event.Identification}"
                 + $"{Event.RecordSeparator} {logEvent.Time.ToIso8601String()}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{logEvent.Loglevel.ToString()}"
-                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{string.Join(".", logfileHierarchy.Hierarchy)}"
-                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}1 Event {{first=`1`, second=`2`, third=`3`}}"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}to%60p.sub"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}1 Event {{first=`1`, second=`abc%60def`, third=`3`}}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.DeveloperFlag}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.QuotationMark}{Logfile.Structured.Formatters.EventID.Identification}{Event.QuotationMark}={Event.QuotationMark}{ContentEncoding.Encode(eventIDJson.ToString(Formatting.None), additionalCharactersToEscape: (byte)Event.QuotationMark)}{Event.QuotationMark}"
                 + $"{Constants.NewLine}{Event.RecordSeparator}{Constants.Indent}{Event.QuotationMark}{Logfile.Structured.Formatters.Message.Identification}{Event.QuotationMark}={Event.QuotationMark}{ContentEncoding.Encode("Multi-line\r\nmessage\r\nwith ` character to escape", additionalCharactersToEscape: (byte)Event.QuotationMark)}{Event.QuotationMark}"

@@ -98,7 +98,7 @@ namespace Logfile.Structured.Elements
             sb.Append(subSerialize(configuration, details, true));
 
             sb.Insert(0, $"{RecordSeparator}{(this.LogEvent.IsDeveloper ? $"{VisualRecordSeparator}{DeveloperFlag}" : "")}");
-            sb.Insert(0, $"{RecordSeparator}{(eventID == null ? "" : $"{VisualRecordSeparator}{ContentEncoding.Encode(getEventIDString(eventID))}")}");
+            sb.Insert(0, $"{RecordSeparator}{(eventID == null ? "" : $"{VisualRecordSeparator}{getEventIDString(eventID)}")}");
             sb.Insert(0, $"{RecordSeparator}{(logfileHierarchy == null ? "" : $"{VisualRecordSeparator}{string.Join(".", logfileHierarchy.Hierarchy.Select(h => ContentEncoding.Encode(h)))}")}");
             sb.Insert(0, $"{RecordSeparator}{VisualRecordSeparator}{this.LogEvent.Loglevel.ToString()}");
             sb.Insert(0, $"{RecordSeparator} {this.LogEvent.Time.ToIso8601String()}");
@@ -119,9 +119,10 @@ namespace Logfile.Structured.Elements
                     if (i > 0) arguments.Append(", ");
                     var name = eventID.ParameterNames.Count() >= i + 1 ? eventID.ParameterNames.ElementAt(i) : null;
                     var value = eventID.StringArguments.ElementAt(i);
+                    if (value != null) value = ContentEncoding.Encode(value);
                     if (!string.IsNullOrWhiteSpace(name))
                         arguments.Append($"{name}=");
-                    arguments.Append($"`{value}`");
+                    arguments.Append($"{Constants.QuotationMark}{value}{Constants.QuotationMark}");
                 }
 
                 arguments.Insert(0, " {");
@@ -218,7 +219,7 @@ namespace Logfile.Structured.Elements
                 }
 
                 // Generate final output.
-                sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationMark}{ContentEncoding.Encode(id, additionalCharactersToEscape: (byte)QuotationMark)}{QuotationMark}={QuotationMark}{ContentEncoding.Encode(content, additionalCharactersToEscape: (byte)QuotationMark)}{QuotationMark}");
+                sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationMark}{ContentEncoding.Encode(id)}{QuotationMark}={QuotationMark}{ContentEncoding.Encode(content)}{QuotationMark}");
                 sb.Append(Constants.NewLine);
 
                 // All other log event details must be written in new lines.

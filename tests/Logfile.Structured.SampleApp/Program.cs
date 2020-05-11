@@ -82,6 +82,7 @@ namespace Logfile.Structured.SampleApp
 			exceptionWithData.AddLogEvent(StringSplitOptions.RemoveEmptyEntries).Msg("Unsupported loglevel will not be logged.");
 
 			logfile.Warning.Event(TestEvent.One, 1, 2, 3).Log();
+			logfile.Warning.Event(TestEvent.Two).Log();
 
 			// Expected output:
 			// This is the logfile.
@@ -91,6 +92,7 @@ namespace Logfile.Structured.SampleApp
 			// Never attempt to divide by zero.
 			// This comes from within an exception object. This is logging without a logger reference.
 			// 1.1 TestEvent.One ... `EventID`=`{"en": [ 1, 1 ], "et": [ "TestEvent", "One" ], "a": [ { "n": "P1", "v": "1" }, { "n": "P2", "v": "2" }, { "v": "3" } ] }`
+			// 1.2 TestEvent.Two
 
 			logfile.Warning.Msg(new string('=', 1000)).Log();
 
