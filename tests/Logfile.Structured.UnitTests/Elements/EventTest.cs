@@ -122,7 +122,7 @@ namespace Logfile.Structured.UnitTests.Elements
                 + $"{Event.RecordSeparator} {logEvent.Time.ToIso8601String()}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{logEvent.Loglevel.ToString()}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{string.Join(".", logfileHierarchy.Hierarchy)}"
-                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}1 Event"
+                + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}1 Event {{first=`1`, second=`2`, third=`3`}}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.DeveloperFlag}"
                 + $"{Event.RecordSeparator}{Event.VisualRecordSeparator}{Event.QuotationMark}{Logfile.Structured.Formatters.EventID.Identification}{Event.QuotationMark}={Event.QuotationMark}{ContentEncoding.Encode(eventIDJson.ToString(Formatting.None), additionalCharactersToEscape: (byte)Event.QuotationMark)}{Event.QuotationMark}"
                 + $"{Constants.NewLine}{Event.RecordSeparator}{Constants.Indent}{Event.QuotationMark}{Logfile.Structured.Formatters.Message.Identification}{Event.QuotationMark}={Event.QuotationMark}{ContentEncoding.Encode("Multi-line\r\nmessage\r\nwith ` character to escape", additionalCharactersToEscape: (byte)Event.QuotationMark)}{Event.QuotationMark}"
