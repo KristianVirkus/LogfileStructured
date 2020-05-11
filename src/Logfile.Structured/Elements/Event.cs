@@ -144,86 +144,93 @@ namespace Logfile.Structured.Elements
         static string subSerialize(StructuredLogfileConfiguration<TLoglevel> configuration, List<object> details, bool firstLogEventDetailToCome)
         {
             var sb = new StringBuilder();
-            while (details.Any())
+            if (details.Any())
             {
-                var detail = details.First();
-                details.RemoveAt(0);
-
-                // Initialise with fall-back output.
-                var id = detail.GetType().ToString();
-                var content = detail.ToString();
-
-                // Handle special case for sensitive/encrypting log event details.
-                if ((detail is Sensitive sensitive) && (sensitive.IsSensitive))
+                while (details.Any())
                 {
-                    // Collect details to be treated by a sub-call. Find matching end
-                    // of sensitive data block indicator and allow nested sensitive
-                    // data blocks.
-                    var subDetails = new List<object>();
-                    var nestedSensitiveBlocks = 0;
-                    foreach (var subDetail in details)
-                    {
-                        if (subDetail is Sensitive subDetailSensitive)
-                        {
-                            if (!subDetailSensitive.IsSensitive)
-                            {
-                                // Remove end of sensitive data block indicator from
-                                // details handled by this call.
-                                details.Remove(subDetail);
+                    var detail = details.First();
+                    details.RemoveAt(0);
 
-                                if (nestedSensitiveBlocks == 0)
+                    // Initialise with fall-back output.
+                    var id = detail.GetType().ToString();
+                    var content = detail.ToString();
+
+                    // Handle special case for sensitive/encrypting log event details.
+                    if ((detail is Sensitive sensitive) && (sensitive.IsSensitive))
+                    {
+                        // Collect details to be treated by a sub-call. Find matching end
+                        // of sensitive data block indicator and allow nested sensitive
+                        // data blocks.
+                        var subDetails = new List<object>();
+                        var nestedSensitiveBlocks = 0;
+                        foreach (var subDetail in details)
+                        {
+                            if (subDetail is Sensitive subDetailSensitive)
+                            {
+                                if (!subDetailSensitive.IsSensitive)
                                 {
-                                    break;
+                                    // Remove end of sensitive data block indicator from
+                                    // details handled by this call.
+                                    details.Remove(subDetail);
+
+                                    if (nestedSensitiveBlocks == 0)
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        --nestedSensitiveBlocks;
+                                    }
                                 }
                                 else
                                 {
-                                    --nestedSensitiveBlocks;
+                                    ++nestedSensitiveBlocks;
                                 }
                             }
-                            else
-                            {
-                                ++nestedSensitiveBlocks;
-                            }
+
+                            subDetails.Add(subDetail);
                         }
 
-                        subDetails.Add(subDetail);
+                        // Remove all details handled by the following call from this call.
+                        foreach (var subDetail in subDetails)
+                        {
+                            details.Remove(subDetail);
+                        }
+
+                        // Have sub-details handled by a sub-call.
+                        try
+                        {
+                            content = sensitive.Serialize(sensitive.Encrypt<TLoglevel>(configuration.SensitiveSettings, Encoding.UTF8.GetBytes(subSerialize(configuration, subDetails, false))));
+                        }
+                        catch
+                        {
+                            // Encrytion failed. Ignore that details and continue with next insensitive data.
+                            continue;
+                        }
                     }
 
-                    // Remove all details handled by the following call from this call.
-                    foreach (var subDetail in subDetails)
+                    // Determine formatter and overwrite content and ID.
+                    var formatter = configuration.LogEventDetailFormatters.Values
+                                        .Where(f => f.SupportedLogEventDetailsTypes.Contains(detail.GetType())
+                                                        || (detail.GetType().IsGenericType
+                                                            && f.SupportedLogEventDetailsTypes.Contains(detail.GetType().BaseType))).FirstOrDefault();
+                    if (formatter != null)
                     {
-                        details.Remove(subDetail);
+                        content = formatter.Format(detail);
+                        id = formatter.ID;
                     }
 
-                    // Have sub-details handled by a sub-call.
-                    try
-                    {
-                        content = sensitive.Serialize(sensitive.Encrypt<TLoglevel>(configuration.SensitiveSettings, Encoding.UTF8.GetBytes(subSerialize(configuration, subDetails, false))));
-                    }
-                    catch
-                    {
-                        // Encrytion failed. Ignore that details and continue with next insensitive data.
-                        continue;
-                    }
+                    // Generate final output.
+                    sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationMark}{ContentEncoding.Encode(id)}{QuotationMark}={QuotationMark}{ContentEncoding.Encode(content)}{QuotationMark}");
+                    sb.Append(Constants.NewLine);
+
+                    // All other log event details must be written in new lines.
+                    firstLogEventDetailToCome = false;
                 }
-
-                // Determine formatter and overwrite content and ID.
-                var formatter = configuration.LogEventDetailFormatters.Values
-                                    .Where(f => f.SupportedLogEventDetailsTypes.Contains(detail.GetType())
-                                                    || (detail.GetType().IsGenericType
-                                                        && f.SupportedLogEventDetailsTypes.Contains(detail.GetType().BaseType))).FirstOrDefault();
-                if (formatter != null)
-                {
-                    content = formatter.Format(detail);
-                    id = formatter.ID;
-                }
-
-                // Generate final output.
-                sb.Append($"{RecordSeparator}{(firstLogEventDetailToCome ? VisualRecordSeparator : Constants.Indent)}{QuotationMark}{ContentEncoding.Encode(id)}{QuotationMark}={QuotationMark}{ContentEncoding.Encode(content)}{QuotationMark}");
+            }
+            else
+            {
                 sb.Append(Constants.NewLine);
-
-                // All other log event details must be written in new lines.
-                firstLogEventDetailToCome = false;
             }
 
             return sb.ToString();
