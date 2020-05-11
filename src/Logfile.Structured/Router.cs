@@ -201,7 +201,7 @@ namespace Logfile.Structured
 						}
 
 						// Write to debug console if enabled.
-						if (this.configuration.WriteToConsole)
+						if (this.configuration.WriteToDebugConsole)
 						{
 							try
 							{
@@ -214,6 +214,7 @@ namespace Logfile.Structured
 							}
 						}
 
+						// Write to all configured additional stream writers.
 						foreach (var streamWriter in this.configuration.StreamWriters)
 						{
 							cancellationToken.ThrowIfCancellationRequested();
@@ -277,7 +278,12 @@ namespace Logfile.Structured
 						{
 							var reader = new StructuredLogfileReader<TLoglevel>(fileStream);
 							var header = (Header<TLoglevel>)(await reader.ReadNextElementAsync(cancellationToken).ConfigureAwait(false));
-							list.Add((StartUpTime: header.AppStartUpTime, SequenceNo: header.AppInstanceLogfileSequenceNumber, FilePath: filePath));
+							if (header != null)
+							{
+								list.Add((StartUpTime: header.AppStartUpTime,
+										  SequenceNo: header.AppInstanceLogfileSequenceNumber,
+										  FilePath: filePath));
+							}
 						}
 					}
 					catch (Exception ex)
