@@ -375,16 +375,17 @@ namespace Logfile.Structured.UnitTests.Elements
 				var header = createHeader();
 				var serialized = header.Serialize(configuration);
 				var data = ContentEncoding.Encoding.GetBytes(serialized);
+				var mauritanianTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Mauritius Standard Time");
 
 				// Act
 				var result = Header<StandardLoglevel>.Parse(
 					data: data,
-					timeZone: TimeZoneInfo.FindSystemTimeZoneById("Mauritius Standard Time"));
+					timeZone: mauritanianTimeZone);
 
 				// Assert
 				var parsedHeader = (Header<StandardLoglevel>)result.Element;
 				parsedHeader.AppStartUpTime.Kind.Should().Be(DateTimeKind.Utc);
-				parsedHeader.AppStartUpTime.Should().Be(header.AppStartUpTime.ToUniversalTime());
+				TimeZoneInfo.ConvertTimeFromUtc(parsedHeader.AppStartUpTime, mauritanianTimeZone).Should().Be(header.AppStartUpTime);
 			}
 
 			[Test]

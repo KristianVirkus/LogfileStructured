@@ -29,7 +29,7 @@ namespace Logfile.Structured.Elements
 		{
 			if (s == null) throw new ArgumentNullException(nameof(s));
 
-			var escapeChars = new List<byte>(new[] { (byte)'%' }.Union(additionalCharactersToEscape ?? new byte[0]));
+			var escapeChars = new List<byte>(new[] { (byte)'%', (byte)Constants.QuotationMark }.Union(additionalCharactersToEscape ?? new byte[0]));
 			var excludedChars = new[] { (byte)'\t', (byte)'\r', (byte)'\n' };
 			for (byte b = 0; b < 0x1f; b++)
 			{
