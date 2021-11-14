@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
-    <PackageReference Include="Logfile" Version="1.0.4" />
+    <PackageReference Include="Logfile" Version="1.0.5" />
     <PackageReference Include="Moq" Version="4.13.0" />
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
